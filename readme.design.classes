@@ -1,0 +1,19 @@
+Phonetizer can be used as it is for all languages. It is needed to give the right graphene2PhonemeLookup Table
+
+
+SyllableJingju:
+rule-based assignment of durations using Initial-Middle-final rules
+            all consonant durations set to CONSONANT_DURATION 
+            
+            
+calcPhonemeDurations()
+	does the assignment of duration among phonemes in a syllable
+	uses rules  within a syllable (see report_parameters.lyx for details)
+	
+	
+
+MAIN LOGIC in file: doitAlignChunk
+
+
+evaluation accuracy is printed on the console after each sentence from a an aria is done
+To make it evaluate one sentence only play around with the loop in runWithParameters  
