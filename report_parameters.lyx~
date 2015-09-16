@@ -85,7 +85,12 @@ Experimental Setup
 \end_layout
 
 \begin_layout Subsection
-setting one: no score: each syllable gets equal duration
+setting one: without score: each syllable gets equal duration
+\end_layout
+
+\begin_layout Standard
+Using the duration-explicit decoding, but each syllable within a sentence
+ gets equal duration 
 \end_layout
 
 \begin_layout Standard
@@ -136,7 +141,7 @@ Results
 status open
 
 \begin_layout Plain Layout
-code in Jingju.doit.loadLyrics() 
+code in runWithParams.py 
 \end_layout
 
 \end_inset
@@ -176,7 +181,7 @@ deviationInSec
 \begin_inset Text
 
 \begin_layout Plain Layout
-laosheng_erhuang
+laosheng-erhuang_04
 \end_layout
 
 \end_inset
@@ -185,7 +190,7 @@ laosheng_erhuang
 \begin_inset Text
 
 \begin_layout Plain Layout
-laosheng_xipi
+laosheng-xipi_02
 \end_layout
 
 \end_inset
@@ -194,7 +199,7 @@ laosheng_xipi
 \begin_inset Text
 
 \begin_layout Plain Layout
-dan_xipi_01
+dan-xipi_01
 \end_layout
 
 \end_inset

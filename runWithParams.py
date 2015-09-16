@@ -11,6 +11,9 @@ from lyricsParser import divideIntoSectionsFromAnno
 from ParametersAlgo import ParametersAlgo
 from doitOneChunkAlign import doitOneChunkAlign
 
+
+
+
 def runWithParameters(argv):
     
     if len(argv) != 6:
@@ -29,9 +32,9 @@ def runWithParameters(argv):
     URIrecordingNoExt = rootURI + argv[4]
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
 
-    # load ts for different sentences
+    # load total # different sentences + their rspective ts
 #         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
-    listSentences = divideIntoSectionsFromAnno(lyricsTextGrid)
+    listSentences = divideIntoSectionsFromAnno(lyricsTextGrid) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
     
     withScores  = int(argv[2])
     ParametersAlgo.DEVIATION_IN_SEC = float(argv[3])
@@ -69,7 +72,7 @@ if __name__ == '__main__':
     runWithParameters(sys.argv)
 
 #     example: 
-# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/Jingju/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_01 0
-# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/Jingju/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 laosheng-xipi_02 0
+# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_01 0
+# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 laosheng-xipi_02 0
 
 # output is printed on the console after each aria is done

@@ -7,12 +7,14 @@ Created on Jun 14, 2015
 from music21 import *
 from SyllableJingju import SyllableJingju
 from cjklib.reading import ReadingFactory
+from cjklib.characterlookup import CharacterLookup
+
 import logging
 
 from Lyrics import Lyrics
 from Word import Word
-from Phonetizer import Phonetizer
 from lyricsParser import createSyllables, stripPunctuationSings
+from Phonetizer import Phonetizer
 import sys
 import os.path
 
@@ -32,6 +34,9 @@ class MusicXMLParser(object):
         '''
         Constructor
         '''
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+
         self._loadSyllables( MusicXmlURI, lyricsTextGrid)
         
 #        lyrics for each sentence/line 
@@ -40,8 +45,6 @@ class MusicXMLParser(object):
         
         # list of  section names and their lyrics. 
         self.sectionLyrics = []
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
     
     
     def _loadSyllables(self, MusicXmlURI, lyricsTextGrid):
@@ -64,33 +67,47 @@ class MusicXMLParser(object):
         currSyllable.setDurationInMinUnit(currSyllTotalDuration)
         self.listSyllables.append(currSyllable)
         
-        ##### here workaround for not reading lyrics
-        
-        
-        syllablesAllPinyin = createSyllables(lyricsTextGrid, -1, -1 )
-        
-        counter = 0
-        for syl in self.listSyllables:
-            if syl.text == 'REST':
-                pass
-            else:
-                if counter == len(syllablesAllPinyin):
-                    sys.exit(" syllable {} is last available from syllablesPinyin".format(syllablesAllPinyin[counter-1].text))
-                print "mandarin:{}and pinyin: {} ".format(syl.text, syllablesAllPinyin[counter].text)
-                syl.text = syllablesAllPinyin[counter].text
-                counter +=1
-        print "len syllables in muicXML= {} and len syllables in TextGrid = {}".format(counter, len(syllablesAllPinyin))
+        ##### here workaround when not able to  convert  lyrics from score into pinyin  
+         
+         
+#         syllablesAllPinyin = createSyllables(lyricsTextGrid, -1, -1 )
+#           
+#         counter = 0
+#         for syl in self.listSyllables:
+#             if syl.text == 'REST':
+#                 pass
+#             else: 
+#                 if counter == len(syllablesAllPinyin): # reached last syllable
+#                     sys.exit(" syllable {} is last available from syllablesPinyin".format(syllablesAllPinyin[counter-1].text))
+#                 print "mandarin:{} and pinyin: {} ".format(syl.text, syllablesAllPinyin[counter].text)
+#                 syl.text = syllablesAllPinyin[counter].text
+#                 counter +=1
+#         print "len syllables in muicXML= {} and len syllables in TextGrid = {}".format(counter, len(syllablesAllPinyin))
 
         # end of workaround 
         
     def divideIntoSections(self):
         '''
         same as lyricsParser.divideIntoSections just class variable name self.listSyllable is different
+        converts mandarin to pinyin
+        divides into sections 
         '''
         
         currSectionLyrics =  []
         for syl in self.listSyllables:
+                
+                
             isEndOfSentence, syl.text = stripPunctuationSings(syl.text)
+                
+                ### convert from mandarin to pinyin
+            if not syl.text == 'REST':
+                cjk = CharacterLookup('C')
+                textPinYinList = cjk.getReadingForCharacter(syl.text, 'Pinyin', toneMarkType='none') 
+                if len(textPinYinList) > 1:
+                    self.logger.warn("converted syllable {} has {} parts".format(textPinYinList, len(textPinYinList)))
+                syl.text = textPinYinList[0] # take only first variant of pinyin interpretations
+                
+            ### finish up sentence when punctuation present        
             if isEndOfSentence:
                 
                 currSectionLyrics.append(syl)
@@ -119,21 +136,20 @@ class MusicXMLParser(object):
                 
         # '' (no lyrics at note) so still at same syllable
         elif noteOrRest.isNote:
-            if (not noteOrRest.hasLyrics()) or (noteOrRest.hasLyrics() and noteOrRest.lyrics[0].text.strip().startswith('（') or noteOrRest.lyrics[0].text.strip()==''):
+            if (not noteOrRest.hasLyrics()) or (noteOrRest.hasLyrics() and noteOrRest.lyrics[0].text.strip().startswith('（') or noteOrRest.lyrics[0].text.strip()==''): # has no lyrics token. '(' is ignored
                 if not (currSyllable is None) and not (syllTotalDuration is None):
                     syllTotalDuration = syllTotalDuration + currNoteDuration
         
             else: # has lyrics => has end of curr syllable
                 lyrics = noteOrRest.lyrics
                 if len(lyrics) > 1: # sanity check
-                    print "syllable {} has {} characters".format(lyrics, len(lyrics))
+                    self.logger.warn("syllable {} has {} characters".format(lyrics, len(lyrics)))
                 # convert to pinyin: maybe use this instead: https://pypi.python.org/pypi/pinyin/0.2.5
                 if len(lyrics) != 0: # skip lyrics of len 0
-                    f = ReadingFactory()
-                    a = lyrics[0].text
-                    textPinYin = f.convert(a, 'MandarinBraille', 'Pinyin')
+                    
+                    mandarinText = lyrics[0].text
 
-                    currSyllable, syllTotalDuration = self.finishCurrentAndCreateNewSyllable(textPinYin, currSyllable, syllTotalDuration, currNoteDuration)
+                    currSyllable, syllTotalDuration = self.finishCurrentAndCreateNewSyllable(mandarinText, currSyllable, syllTotalDuration, currNoteDuration)
         
         return currSyllable, syllTotalDuration
 
@@ -185,20 +201,3 @@ def createWord(syllablesInCurrWord, currSyllable):
         return word, syllablesInCurrWord   
     
     
-if __name__=='__main__':
-    MusicXmlURI = '/Users/joro/Documents/Phd/UPF/arias/dan-xipi_01_score.xml'
-    lyricsTextGrid = '/Users/joro/Documents/Phd/UPF/arias/dan-xipi_01.TextGrid'
-    
-    
-    MusicXmlURI = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02_score.xml'
-    lyricsTextGrid = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02.TextGrid'
-
-    musicXMLParser = MusicXMLParser(MusicXmlURI, lyricsTextGrid)
-    
-    Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
-
-    for i in range(len(musicXMLParser.listSentences)):
-        print i, " ",  musicXMLParser.getLyricsForSection(i)
-    
-#     for syll in musicXMLParser.listSyllables:
-#         print syll

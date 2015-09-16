@@ -11,7 +11,7 @@ import json
 
 
 
-parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0]) ), os.path.pardir)) 
+parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
 pathUtils = os.path.join(parentDir, 'utilsLyrics')
 if pathUtils not in sys.path:

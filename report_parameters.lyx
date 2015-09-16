@@ -77,7 +77,20 @@
 \begin_body
 
 \begin_layout Section
+System Overview: 
+\end_layout
+
+\begin_layout Standard
+manual segmentation according to lyrics lines/sentences from script of aria
+ 
+\end_layout
+
+\begin_layout Section
 Within-Syllable distribution rules
+\end_layout
+
+\begin_layout Section
+Vocal/nonvocal segmentation
 \end_layout
 
 \begin_layout Section
@@ -141,7 +154,9 @@ Results
 status open
 
 \begin_layout Plain Layout
-code in runWithParams.py 
+code in runWithParams.py.
+ results in dir /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70 and /Users/joro/
+Documents/Phd/UPF/arias_dev_05_t_70
 \end_layout
 
 \end_inset
@@ -369,7 +384,7 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
-32.44
+32.01
 \end_layout
 
 \end_inset
@@ -378,7 +393,7 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
-46.60
+45.05
 \end_layout
 
 \end_inset
@@ -387,7 +402,7 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
-61.23
+63.77
 \end_layout
 
 \end_inset

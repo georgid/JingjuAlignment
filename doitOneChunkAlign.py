@@ -5,7 +5,6 @@ Created on Oct 13, 2014
 '''
 import sys
 import os
-from lyricsParser import createSyllables, divideIntoSectionsFromAnno
 from MusicXmlParser import MusicXMLParser, syllables2Lyrics
 
 
@@ -57,31 +56,24 @@ from Utilz import readListOfListTextFile
 ANNOTATION_EXT = '.TextGrid'
 evalLevel = 3 
 
-segmentationDir = os.path.join(parentDir, 'segmentation')
-if segmentationDir not in sys.path: sys.path.append(segmentationDir)
-from assignNonVocals import assignNonVocals
+
+
 
 
 
 def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSentence, withScores, withVocalPrediction):
-    
+    '''
+    align one chunk only.
+    @param musicXMLParser: parsed  score for whole recording
+    @param whichSentence: sentence number to process  
+    '''
 
     fromTs = currSentence[0]
     toTs = currSentence[1]
     
     listNonVocalFragments = []
     if withVocalPrediction:
-
-        ### derive name URI of prediction file
-        URIRecName = os.path.basename(URIrecordingNoExt)
-        token1 = URIRecName.split('-')[0]
-        tokens = URIRecName.split('-')[1].split('_')
-        token2 = tokens[0]
-        token3 = tokens[1]
-        VJPpredictionFile = segmentationDir + '/data/output_VJP_' + token1 + token2 + token3 + '/predictionVJP.txt'
-    #     VJPpredictionFile = '/Users/joro/Documents/Phd/UPF/voxforge/myScripts/segmentationShuo/data/output_VJP_laoshengerhuang04/predictionVJP.txt'
-    #     VJPpredictionFile = '/Users/joro/Documents/Phd/UPF/voxforge/myScripts/segmentationShuo/data/output_VJP_danxipi01/predictionVJP.txt'
-        listNonVocalFragments = assignNonVocals(VJPpredictionFile, fromTs, toTs)
+        listNonVocalFragments = getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs)
     
     URIRecordingChunk = URIrecordingNoExt + "_" + str(fromTs) + '_' + str(toTs) + '.wav'
     if (withScores):
@@ -147,31 +139,21 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     
     return correctDuration, totalDuration
 
-#### this is example usage, not part of the library
-if __name__ == '__main__':
-        
-        rootURI = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/'
-        URIrecordingNoExt =  rootURI + 'laosheng-erhuang_04'
-        URIrecordingNoExt =  rootURI + 'laosheng-xipi_02'
-#         URIrecordingNoExt =  rootURI + 'dan-xipi_02'
-        
-        URIrecordingNoExt =  rootURI + 'dan-xipi_01'
-        lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
 
-        # load ts for different sentences
-#         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
-        listSentences = divideIntoSectionsFromAnno(lyricsTextGrid)
-        
-        withScores  = 1
-        musicXMLParser = None
-        
-        if withScores:
-            musicXmlURI = URIrecordingNoExt + '_score.xml'
-            musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
-        
-        withVocalPrediction = 1
-        for whichSentence, currSentence in  enumerate(listSentences):
-            correctDuration, totalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSentence, withScores, withVocalPrediction)
-    
+def getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs):
+    segmentationDir = os.path.join(parentDir, 'segmentation')
+    if segmentationDir not in sys.path:
+        sys.path.append(segmentationDir)
+    from assignNonVocals import assignNonVocals
+### derive name URI of prediction file
+    URIRecName = os.path.basename(URIrecordingNoExt)
+    token1 = URIRecName.split('-')[0]
+    tokens = URIRecName.split('-')[1].split('_')
+    token2 = tokens[0]
+    token3 = tokens[1]
+    VJPpredictionFile = segmentationDir + '/data/output_VJP_' + token1 + token2 + token3 + '/predictionVJP.txt' #     VJPpredictionFile = '/Users/joro/Documents/Phd/UPF/voxforge/myScripts/segmentationShuo/data/output_VJP_laoshengerhuang04/predictionVJP.txt'
+    #     VJPpredictionFile = '/Users/joro/Documents/Phd/UPF/voxforge/myScripts/segmentationShuo/data/output_VJP_danxipi01/predictionVJP.txt'
+    listNonVocalFragments = assignNonVocals(VJPpredictionFile, fromTs, toTs)
+    return listNonVocalFragments
 
 
