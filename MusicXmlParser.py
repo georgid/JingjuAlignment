@@ -178,6 +178,8 @@ def syllables2Lyrics(syllables):
             listWords.append(word)
     
 
+        Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
+
         # load phonetic dict 
         Phonetizer.initPhoneticDict('syl2phn46.txt')                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     

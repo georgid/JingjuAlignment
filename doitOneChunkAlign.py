@@ -24,9 +24,9 @@ from PraatVisualiser import tokenList2TabFile
 
 
 
-pathAlignmentDuration = os.path.join(parentDir, 'AlignmentDuration')
-if pathAlignmentDuration not in sys.path:
-    sys.path.append(pathAlignmentDuration)
+pathHMMDuration = os.path.join(parentDir, 'AlignmentDuration')
+if pathHMMDuration not in sys.path:
+    sys.path.append(pathHMMDuration)
 
 
 # parser of htk-build speech model
@@ -75,13 +75,13 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     if withVocalPrediction:
         listNonVocalFragments = getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs)
     
-    URIRecordingChunk = URIrecordingNoExt + "_" + str(fromTs) + '_' + str(toTs) + '.wav'
+    URIRecordingChunkNoExt = URIrecordingNoExt + "_" + str(fromTs) + '_' + str(toTs)
     if (withScores):
         tokenLevelAlignedSuffix = '.syllables_dur'
     else:
         tokenLevelAlignedSuffix = '.syllables'
 
-    detectedAlignedfileName = os.path.splitext(URIRecordingChunk)[0] + tokenLevelAlignedSuffix
+    detectedAlignedfileName = URIRecordingChunkNoExt + tokenLevelAlignedSuffix
 
     fromSyllable = currSentence[2]
     toSyllable = currSentence[3]
@@ -96,23 +96,13 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     
     
     
-    REF_SYLLABLE_DUR_IN_MIN_UNIT = 4
-    # deviationInSec
-    
     ###### 1) load Lyrics
-    Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
-    
+    lyrics = loadLyricsFromTextGridSentence(currSentence)
+
     
     if withScores: 
         lyrics = musicXMLParser.getLyricsForSection(whichSentence) # indexing in python
-#         lyrics.printSyllables()
-
-            
-    else:
-        syllables = currSentence[4]
-        lyrics = syllables2Lyrics(syllables)
-#         lyrics.printSyllables()
-        
+#         lyrics.printSyllables()        
 
     withSynthesis = True
 #     2) load features
@@ -126,10 +116,9 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     ONLY_MIDDLE_STATE = False
     params  = Parameters(alpha, ONLY_MIDDLE_STATE)
     
-    alignmentErrors, detectedTokenList, dummycorrectDuration, dummytotalDuration = alignOneChunk(obsFeatures, lyricsWithModels, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, URIrecordingNoExt)
+    alignmentErrors, detectedTokenList, detectedPath = alignOneChunk(obsFeatures, lyricsWithModels, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, URIRecordingChunkNoExt)
     
-    # store decoding results in a file FIXME: if with duration it is not mlf 
-    detectedAlignedfileName =  tokenList2TabFile(detectedTokenList, os.path.splitext(URIRecordingChunk)[0], tokenLevelAlignedSuffix)
+
 
     correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, fromSyllable, toSyllable  )
     acc = correctDuration / totalDuration
@@ -139,6 +128,14 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     
     return correctDuration, totalDuration
 
+def loadLyricsFromTextGridSentence(currSentence):
+    Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
+    syllables = currSentence[4]
+    lyrics = syllables2Lyrics(syllables)
+
+#     if logger.level == logging.DEBUG:
+    lyrics.printSyllables()
+    return lyrics
 
 def getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs):
     segmentationDir = os.path.join(parentDir, 'segmentation')

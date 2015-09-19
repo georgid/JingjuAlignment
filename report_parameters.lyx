@@ -93,6 +93,15 @@ Within-Syllable distribution rules
 Vocal/nonvocal segmentation
 \end_layout
 
+\begin_layout Standard
+tested on dan-xipi-01, resulted in worse accuracy.
+ 
+\end_layout
+
+\begin_layout Standard
+TODO: test on all with and without vocal
+\end_layout
+
 \begin_layout Section
 Experimental Setup
 \end_layout
@@ -166,8 +175,9 @@ Documents/Phd/UPF/arias_dev_05_t_70
 
 \begin_layout Standard
 \begin_inset Tabular
-<lyxtabular version="3" rows="7" columns="5">
+<lyxtabular version="3" rows="7" columns="6">
 <features rotate="90" tabularvalignment="middle">
+<column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
@@ -210,11 +220,20 @@ laosheng-xipi_02
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
 dan-xipi_01
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+dan-xipi_02
 \end_layout
 
 \end_inset
@@ -257,11 +276,20 @@ without score
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
 45.30
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -300,6 +328,15 @@ without score
 
 \begin_layout Plain Layout
 21.74
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -351,6 +388,15 @@ without score
 
 \end_inset
 </cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
@@ -366,7 +412,7 @@ without score
 \begin_inset Text
 
 \begin_layout Plain Layout
-with score
+with score durarions
 \end_layout
 
 \end_inset
@@ -384,6 +430,8 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\series bold
 32.01
 \end_layout
 
@@ -393,7 +441,20 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\series bold
 45.05
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+63.77
 \end_layout
 
 \end_inset
@@ -402,7 +463,9 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
-63.77
+
+\series bold
+18.39
 \end_layout
 
 \end_inset
@@ -445,7 +508,7 @@ with score
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -454,9 +517,29 @@ with score
 
 \end_inset
 </cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\color blue
+21.3
+\end_layout
+
+\end_inset
+</cell>
 </row>
 <row>
 <cell multirow="4" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -514,7 +597,14 @@ dan_xipi_01 has best score: seems it s due to female voice, not to tempo.
 \end_layout
 
 \begin_layout Standard
-Tempo:
+\begin_inset VSpace bigskip
+\end_inset
+
+----------
+\end_layout
+
+\begin_layout Standard
+Tempo (not done yet):
 \end_layout
 
 \begin_layout Standard
@@ -868,8 +958,8 @@ Slow tempo has a lot of variation, not stable results.
 \end_layout
 
 \begin_layout Standard
-increasing the deviation brings improvement when tempo is slow, but does
- not affect results for mid and fast tempo.
+increasing the deviation brings improvement when tempo is slow, but affects
+ results negatively for mid and fast tempo.
  
 \end_layout
 

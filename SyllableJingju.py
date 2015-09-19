@@ -13,9 +13,9 @@ from numpy.ma.core import ceil
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
-pathAlignmentDuration = os.path.join(parentDir, 'AlignmentDuration')
-if pathAlignmentDuration not in sys.path:
-    sys.path.append(pathAlignmentDuration)
+pathHMMDuration = os.path.join(parentDir, 'AlignmentDuration')
+if pathHMMDuration not in sys.path:
+    sys.path.append(pathHMMDuration)
 
 
 from Phoneme import Phoneme

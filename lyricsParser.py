@@ -23,9 +23,9 @@ pathEvaluation = os.path.join(parentDir, 'AlignmentEvaluation')
 if pathEvaluation not in sys.path:
     sys.path.append(pathEvaluation)
 
-pathAlignmentDuration = os.path.join(parentDir, 'AlignmentDuration')
-if pathAlignmentDuration not in sys.path:
-    sys.path.append(pathAlignmentDuration)
+pathHMMDuration = os.path.join(parentDir, 'AlignmentDuration')
+if pathHMMDuration not in sys.path:
+    sys.path.append(pathHMMDuration)
 
 
 from Phonetizer import Phonetizer

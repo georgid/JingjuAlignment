@@ -40,6 +40,9 @@ git clone https://github.com/georgid/AlignmentEvaluation.git
 * utilsLyrics
 git clone https://github.com/georgid/utilsLyrics.git
 
+* resynthesis of vocal harmonic spectrum
+git clone https://github.com/georgid/sms-tools.git
+
 
 usage: /Users/joro/Documents/Phd/UPF/voxforge/myScripts/Jingju/runWithParams.py   <pathToRecordings> <withScores> <deviationINSec> <recordingName> <withVocalPrediciton>
      example usage:
