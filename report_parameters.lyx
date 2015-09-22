@@ -89,6 +89,21 @@ manual segmentation according to lyrics lines/sentences from script of aria
 Within-Syllable distribution rules
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+IMPL: sp at end of syllables are not optional.
+ They are assigned duration as a consonant A, which might result in actual
+ duration from 0 to A 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Vocal/nonvocal segmentation
 \end_layout

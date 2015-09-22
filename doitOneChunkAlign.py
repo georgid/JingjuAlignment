@@ -98,16 +98,16 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     
     ###### 1) load Lyrics
     lyrics = loadLyricsFromTextGridSentence(currSentence)
-
+#     if logger.level == logging.DEBUG:
+#     lyrics.printSyllables()
     
-    if withScores: 
+    if withScores: # load from score instead
         lyrics = musicXMLParser.getLyricsForSection(whichSentence) # indexing in python
-#         lyrics.printSyllables()        
 
     withSynthesis = True
 #     2) load features
-    lyricsWithModels, obsFeatures  = loadSmallAudioFragment(lyrics,  URIrecordingNoExt, withSynthesis, fromTs, toTs)
-    
+    lyricsWithModels, obsFeatures, dummyChunkURI  = loadSmallAudioFragment(lyrics,  URIrecordingNoExt, withSynthesis, fromTs, toTs)
+#     lyricsWithModels.printWordsAndStates()
     
     ##### align
     usePersistentFiles = 'False'
@@ -133,8 +133,7 @@ def loadLyricsFromTextGridSentence(currSentence):
     syllables = currSentence[4]
     lyrics = syllables2Lyrics(syllables)
 
-#     if logger.level == logging.DEBUG:
-    lyrics.printSyllables()
+
     return lyrics
 
 def getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs):

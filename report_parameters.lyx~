@@ -412,7 +412,7 @@ without score
 \begin_inset Text
 
 \begin_layout Plain Layout
-with score
+with score durarions
 \end_layout
 
 \end_inset
@@ -430,6 +430,8 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\series bold
 32.01
 \end_layout
 
@@ -439,6 +441,8 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\series bold
 45.05
 \end_layout
 
@@ -448,6 +452,8 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\series bold
 63.77
 \end_layout
 
@@ -457,6 +463,8 @@ with score
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\series bold
 18.39
 \end_layout
 

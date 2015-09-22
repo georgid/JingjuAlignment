@@ -39,9 +39,6 @@ def test_oracle_jingju(URIrecordingNoExt,  whichSentence, fromPhonemeIdx, toPhon
   
     fromTs = currSentence[0]
     toTs = currSentence[1]
-        
-    
-
 
     
     lyrics = loadLyricsFromTextGridSentence(currSentence)
@@ -89,6 +86,9 @@ if __name__ == '__main__':
     
     whichSentence = 1
     fromPhonemeIdx  = 33; toPhonemeIdx = 45
+    
+    whichSentence = 2
+    fromPhonemeIdx  = 47; toPhonemeIdx = 173
     
     test_oracle_jingju(URIrecordingNoExt,  whichSentence, fromPhonemeIdx, toPhonemeIdx)
 
