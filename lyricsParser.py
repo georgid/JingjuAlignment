@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 Created on Mar 5, 2015
+collection of metods for parsing textGrid and lyrics
 
 @author: joro
 '''
@@ -23,6 +24,8 @@ pathEvaluation = os.path.join(parentDir, 'AlignmentEvaluation')
 if pathEvaluation not in sys.path:
     sys.path.append(pathEvaluation)
 
+from WordLevelEvaluator import readNonEmptyTokensTextGrid, TextGrid2WordList
+
 pathHMMDuration = os.path.join(parentDir, 'AlignmentDuration')
 if pathHMMDuration not in sys.path:
     sys.path.append(pathHMMDuration)
@@ -35,7 +38,6 @@ from SymbTrParser import createWord
 
 from Lyrics import Lyrics
     
-from WordLevelEvaluator import readNonEmptyTokensTextGrid
 
     
             
@@ -63,11 +65,58 @@ def createSyllables(annotationURI, fromSyllable, toSyllable):
     return listSyllables
 
 
-def divideIntoSectionsFromAnno(annotationURI):
+def divideIntoSentencesFromAnno(annotationURI):
+    '''
+    infer section/line timestamps from annotation-textgrid, 
+    parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
+    '''
+    
+    whichLevel = 5 # read lines (sentences) tier
+    annotationTokenList, annotationLinesListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
+    
+    whichLevel = 3 # read syllables as pinyin 
+    syllablesList = TextGrid2WordList(annotationURI, whichLevel)
+    annotationTokenList, syllablesList =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
+
+    syllablePointer = 0
+    
+    listSentences = []
+    for currSentence in annotationLinesListNoPauses:
+        currSectionSyllables = []
+        currSentenceBegin = currSentence[0] 
+        currSentenceEnd = currSentence[1]
+         
+        while syllablesList[syllablePointer][0] < currSentenceBegin: # search for beginning
+             syllablePointer += 1
+        if not syllablesList[syllablePointer][0] == currSentenceBegin: # start has to be aligned 
+            sys.exit("no syllable starting at sentence start at {}  ".format(currSentenceBegin) )
+        
+        fromSyllableIdx = syllablesList[syllablePointer][3]
+        while syllablePointer < len(syllablesList) and float(syllablesList[syllablePointer][1]) <= currSentenceEnd: # syllables in currSentence
+            isEndOfSentence, syllableTxt = stripPunctuationSings(syllablesList[syllablePointer][2])
+            currSyllable = SyllableJingju(syllableTxt, -1)
+            currSyllable.setDurationInMinUnit(1)
+            currSectionSyllables.append(currSyllable)
+            syllablePointer += 1
+        if not syllablesList[syllablePointer-1][1] == currSentenceEnd: # end has to be aligned 
+            sys.exit("no syllable ending at sentence end at {}  ".format(currSentenceEnd) )
+        toSyllableIdx = syllablesList[syllablePointer-1][3]
+        
+        listSentences.append(( currSentenceBegin, currSentenceEnd, fromSyllableIdx, toSyllableIdx, currSectionSyllables))
+
+     
+    return listSentences
+
+
+def divideIntoSentencesFromAnnoOld(annotationURI):
         '''
-        infer section/line timestamps from annotation-textgrid
-        '''        
-        annotationTokenList, annotationTokenListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, 3, 0,-1)
+        infer section/line timestamps from annotation-textgrid, 
+        use punctuation as marker for sentence ends
+        @deprecated
+        '''
+#         whichLevel = 5 # line
+        whichLevel = 3 # pinyin
+        annotationTokenList, annotationTokenListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
 
         
         currSectionSyllables =  []
@@ -88,7 +137,7 @@ def divideIntoSectionsFromAnno(annotationURI):
                 
                 currSectionEndTime = token[1]
                 toSyllable = token[3]
-                listSentences.append(( currSectionStartTime,currSectionEndTime, fromSyllable, toSyllable, currSectionSyllables))
+                listSentences.append(( currSectionStartTime, currSectionEndTime, fromSyllable, toSyllable, currSectionSyllables))
                 
                 # start next section
                 currSectionSyllables =  []
@@ -101,7 +150,36 @@ def divideIntoSectionsFromAnno(annotationURI):
                 currSyllable.setDurationInMinUnit(1)
                 currSectionSyllables.append(currSyllable)
         return listSentences
+    
+    
+def loadLyricsFromTextGridSentence(currSentence):
+    Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
+    syllables = currSentence[4]
+    lyrics = syllables2Lyrics(syllables)
 
+    return lyrics
+
+
+def syllables2Lyrics(syllables):
+        
+        listWords = []
+        for syllable in syllables:
+            # word of only one syllable
+            word, dummy = createWord([], syllable)
+            listWords.append(word)
+    
+
+        Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
+
+        # load phonetic dict 
+        Phonetizer.initPhoneticDict('syl2phn46.txt')                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+    
+        ## 3) create lyrics
+        # here is called Syllable.expandToPhonemes.
+        lyrics = Lyrics(listWords)
+        return lyrics
+    
+  
 def stripPunctuationSings(string_):
     isEndOfSentence = False
     if string_.endswith(u'\u3002') or string_.endswith(u'\uff0c') \
@@ -135,7 +213,7 @@ def serializeLyrics(lyrics, outputFileNoExt):
      
 if __name__ == '__main__':
     rootURI = '/Users/joro/Documents/Phd/UPF/arias/'
-    listSentences = divideIntoSectionsFromAnno(rootURI + 'laosheng-erhuang_04.TextGrid')
+    listSentences = divideIntoSentencesFromAnnoOld(rootURI + 'laosheng-erhuang_04.TextGrid')
 #     for section in listSentences:
 #         print section[0],  section[1], section[2], section[3]
 #         for syll in section[4]:

@@ -14,12 +14,18 @@ from Phonetizer import Phonetizer
 
 if __name__=='__main__':
     
-    MusicXmlURI = 'dan-xipi_01_score.xml'
-    lyricsTextGrid = 'dan-xipi_01.TextGrid'
-     
+    aria = 'dan-xipi_02' 
+    aria = 'laosheng-xipi_02'
+    aria = 'laosheng-erhuang_04'
+    
+    URI = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/' 
       
-    MusicXmlURI = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02_score.xml'
-    lyricsTextGrid = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02.TextGrid'
+    MusicXmlURI = URI + aria + '_score.xml'
+    lyricsTextGrid =  URI + aria + '.TextGrid'
+    
+#     MusicXmlURI = 'dan-xipi_01_score.xml'
+#     lyricsTextGrid = 'dan-xipi_01.TextGrid'
+    
 
     musicXMLParser = MusicXMLParser(MusicXmlURI, lyricsTextGrid)
     

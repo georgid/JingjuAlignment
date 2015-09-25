@@ -44,6 +44,9 @@ git clone https://github.com/georgid/utilsLyrics.git
 git clone https://github.com/georgid/sms-tools.git
 
 
-usage: /Users/joro/Documents/Phd/UPF/voxforge/myScripts/Jingju/runWithParams.py   <pathToRecordings> <withScores> <deviationINSec> <recordingName> <withVocalPrediciton>
-     example usage:
-# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/Jingju/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_02 1
+USAGE: runWithParams.py   <pathToRecordings> <withScores> <deviationINSec> <recordingName> <withVocalPrediciton>
+
+example usage:
+# python runWithParams.py tests 1 0.1 dan-xipi_01 1
+
+as wel see tests/AlignOneChunkTest to test segment(=1, or =2) from aria

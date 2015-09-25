@@ -13,7 +13,7 @@ import logging
 
 from Lyrics import Lyrics
 from Word import Word
-from lyricsParser import createSyllables, stripPunctuationSings
+from lyricsParser import stripPunctuationSings, syllables2Lyrics
 from Phonetizer import Phonetizer
 import sys
 import os.path
@@ -169,24 +169,7 @@ class MusicXMLParser(object):
         syllables = self.listSentences[whichSection]
         return syllables2Lyrics(syllables)
 
-def syllables2Lyrics(syllables):
-        
-        listWords = []
-        for syllable in syllables:
-            # word of only one syllable
-            word, dummy = createWord([], syllable)
-            listWords.append(word)
-    
 
-        Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
-
-        # load phonetic dict 
-        Phonetizer.initPhoneticDict('syl2phn46.txt')                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-    
-        ## 3) create lyrics
-        # here is called Syllable.expandToPhonemes.
-        lyrics = Lyrics(listWords)
-        return lyrics
 
         
 

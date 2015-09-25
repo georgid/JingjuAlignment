@@ -3,7 +3,7 @@ Created on Sep 18, 2015
 
 @author: joro
 '''
-from lyricsParser import divideIntoSectionsFromAnno
+from lyricsParser import divideIntoSentencesFromAnno
 from doitOneChunkAlign import loadLyricsFromTextGridSentence
 import os
 import sys
@@ -30,7 +30,7 @@ def test_oracle_jingju(URIrecordingNoExt,  whichSentence, fromPhonemeIdx, toPhon
     '''
     
     ANNOTATION_EXT = '.TextGrid'
-    listSentences = divideIntoSectionsFromAnno(URIrecordingNoExt + ANNOTATION_EXT) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
+    listSentences = divideIntoSentencesFromAnno(URIrecordingNoExt + ANNOTATION_EXT) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
     
     withSynthesis = False
     currSentence = listSentences[whichSentence]
@@ -58,9 +58,7 @@ def test_oracle_jingju(URIrecordingNoExt,  whichSentence, fromPhonemeIdx, toPhon
         if not os.path.isfile(detectedAlignedfileName):
             from PraatVisualiser import tokenList2TabFile
             detectedAlignedfileName =  tokenList2TabFile(detectedTokenList, URIrecordingNoExt, tokenLevelAlignedSuffix)
-            
           
-        
     # eval on phrase level
     evalLevel = 2
     
@@ -80,8 +78,6 @@ if __name__ == '__main__':
     
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02'
     
-#     whichSentence = 0
-#     fromPhonemeIdx  = 2; toPhonemeIdx = 30
 
     
     whichSentence = 1
@@ -89,6 +85,10 @@ if __name__ == '__main__':
     
     whichSentence = 2
     fromPhonemeIdx  = 47; toPhonemeIdx = 173
+    
+    whichSentence = 0
+    fromPhonemeIdx  = 2; toPhonemeIdx = 30
+
     
     test_oracle_jingju(URIrecordingNoExt,  whichSentence, fromPhonemeIdx, toPhonemeIdx)
 

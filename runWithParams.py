@@ -7,9 +7,9 @@ import logging
 import sys
 import numpy
 from MusicXmlParser import MusicXMLParser
-from lyricsParser import divideIntoSectionsFromAnno
 from ParametersAlgo import ParametersAlgo
 from doitOneChunkAlign import doitOneChunkAlign
+from lyricsParser import divideIntoSentencesFromAnno
 
 
 
@@ -34,7 +34,7 @@ def runWithParameters(argv):
 
     # load total # different sentences + their rspective ts
 #         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
-    listSentences = divideIntoSectionsFromAnno(lyricsTextGrid) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
+    listSentences = divideIntoSentencesFromAnno(lyricsTextGrid) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
     
     withScores  = int(argv[2])
     ParametersAlgo.DEVIATION_IN_SEC = float(argv[3])
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     runWithParameters(sys.argv)
 
 #     example: 
-# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_01 0
+# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/tests/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_01 0
 # python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 laosheng-xipi_02 0
 
 # output is printed on the console after each aria is done

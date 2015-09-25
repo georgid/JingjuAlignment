@@ -6,10 +6,11 @@ Created on Oct 13, 2014
 import sys
 import os
 from MusicXmlParser import MusicXMLParser, syllables2Lyrics
+from lyricsParser import loadLyricsFromTextGridSentence
 
 
 
-parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0]) ), os.path.pardir)) 
+parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
 pathUtils = os.path.join(parentDir, 'utilsLyrics')
 if pathUtils not in sys.path:
@@ -128,13 +129,7 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     
     return correctDuration, totalDuration
 
-def loadLyricsFromTextGridSentence(currSentence):
-    Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
-    syllables = currSentence[4]
-    lyrics = syllables2Lyrics(syllables)
 
-
-    return lyrics
 
 def getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs):
     segmentationDir = os.path.join(parentDir, 'segmentation')

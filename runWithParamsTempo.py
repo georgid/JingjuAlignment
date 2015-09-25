@@ -7,7 +7,7 @@ import logging
 import sys
 import numpy
 from MusicXmlParser import MusicXMLParser
-from lyricsParser import divideIntoSectionsFromAnno
+from lyricsParser import divideIntoSentencesFromAnnoOld
 from ParametersAlgo import ParametersAlgo
 from doitOneChunkAlign import doitOneChunkAlign
 
@@ -45,7 +45,7 @@ def runWithParameters(argv):
     
         # load ts for different sentences
     #         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
-        listSentences = divideIntoSectionsFromAnno(lyricsTextGrid)
+        listSentences = divideIntoSentencesFromAnnoOld(lyricsTextGrid)
         
         musicXMLParser = None
     
