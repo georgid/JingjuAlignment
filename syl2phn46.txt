@@ -301,8 +301,8 @@ suan	S   UA  NN
 sui	S   W   EI
 suo	S   W   O
 sha	SH  A
-shang	SH  A   NG
 shan	SH  A   NN
+shang	SH  A   NG
 shai	SH  AI
 shao	SH  AO
 she	SH  E

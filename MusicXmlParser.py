@@ -13,7 +13,7 @@ import logging
 
 from Lyrics import Lyrics
 from Word import Word
-from lyricsParser import stripPunctuationSings, syllables2Lyrics
+from lyricsParser import stripPunctuationSigns, syllables2Lyrics
 from Phonetizer import Phonetizer
 import sys
 import os.path
@@ -97,7 +97,7 @@ class MusicXMLParser(object):
         for syl in self.listSyllables:
                 
                 
-            isEndOfSentence, syl.text = stripPunctuationSings(syl.text)
+            isEndOfSentence, syl.text = stripPunctuationSigns(syl.text)
                 
                 ### convert from mandarin to pinyin
             if not syl.text == 'REST':

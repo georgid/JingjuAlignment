@@ -23,8 +23,7 @@ from Phonetizer import Phonetizer
 from _SyllableBase import _SyllableBase
 
 
-from ParametersAlgo import ParametersAlgo
-
+from hmm.ParametersAlgo import ParametersAlgo
 import logging 
 
 logger = logging.getLogger(__name__)
@@ -60,7 +59,8 @@ class SyllableJingju(_SyllableBase):
                 # TODO: replace with other model instead of silence
                 self.phonemes.append(Phoneme('sil'))
                 # TODO: does sp at end of sp make sence? 
-                self.phonemes.append(Phoneme('sp'))
+#                 self.phonemes.append(Phoneme('sp'))
+                self.hasShortPauseAtEnd = False
                 return
             
             if self.text not in Phonetizer.phoneticDict:

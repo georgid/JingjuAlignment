@@ -7,7 +7,8 @@ import logging
 import sys
 import numpy
 from MusicXmlParser import MusicXMLParser
-from ParametersAlgo import ParametersAlgo
+from hmm.ParametersAlgo import ParametersAlgo
+
 from doitOneChunkAlign import doitOneChunkAlign
 from lyricsParser import divideIntoSentencesFromAnno
 
@@ -49,9 +50,10 @@ def runWithParameters(argv):
     accuracyList = []
     
     withVocalPrediction = int(argv[5])
+    withOracle = 0
 #     for whichSentence, currSentence in  reversed(list(enumerate(listSentences))):
     for whichSentence, currSentence in  enumerate(listSentences):
-        currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSentence, withScores, withVocalPrediction)  
+        currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSentence, withOracle, withScores, withVocalPrediction)  
         
         currAcc = currCorrectDuration / currTotalDuration
         accuracyList.append(currAcc)
@@ -72,7 +74,7 @@ if __name__ == '__main__':
     runWithParameters(sys.argv)
 
 #     example: 
-# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/tests/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_01 0
+# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_01 0
 # python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 laosheng-xipi_02 0
 
 # output is printed on the console after each aria is done

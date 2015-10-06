@@ -6,7 +6,8 @@ Created on Oct 13, 2014
 import sys
 import os
 from MusicXmlParser import MusicXMLParser, syllables2Lyrics
-from lyricsParser import loadLyricsFromTextGridSentence
+from lyricsParser import loadLyricsFromTextGridSentence,\
+    parsePhonemeIdxsFromTextGrid
 
 
 
@@ -36,6 +37,7 @@ sys.path.append(pathHtkModelParser)
 from htk_converter import HtkConverter
 
 
+
 from Phonetizer import Phonetizer
 
 from SymbTrParser import createWord
@@ -50,7 +52,7 @@ from doitOneChunk import alignOneChunk
 
 
 pathHMM = os.path.join(parentDir, 'HMMDuration')
-from hmm.examples.main  import loadSmallAudioFragment
+from hmm.examples.main  import loadSmallAudioFragment,  parsePhoenemeAnnoDursOracle
 
 from Utilz import readListOfListTextFile
 
@@ -59,10 +61,7 @@ evalLevel = 3
 
 
 
-
-
-
-def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSentence, withScores, withVocalPrediction):
+def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSentence, withOracle, withDurations, withVocalPrediction):
     '''
     align one chunk only.
     @param musicXMLParser: parsed  score for whole recording
@@ -76,40 +75,27 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     if withVocalPrediction:
         listNonVocalFragments = getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs)
     
-    URIRecordingChunkNoExt = URIrecordingNoExt + "_" + str(fromTs) + '_' + str(toTs)
-    if (withScores):
+    
+    if (withDurations):
         tokenLevelAlignedSuffix = '.syllables_dur'
     else:
-        tokenLevelAlignedSuffix = '.syllables'
+        if withOracle:
+            tokenLevelAlignedSuffix = '.syllables_oracle'
+        else:
+            tokenLevelAlignedSuffix = '.syllables'
 
-    detectedAlignedfileName = URIRecordingChunkNoExt + tokenLevelAlignedSuffix
-
-    fromSyllable = currSentence[2]
-    toSyllable = currSentence[3]
+    fromSyllableIdx = currSentence[2]
+    toSyllableIdx = currSentence[3]
     
-    # already decoded
-    if os.path.isfile(detectedAlignedfileName):
-        print "{} already exists. No decoding".format(detectedAlignedfileName)
-        detectedTokenList  = readListOfListTextFile(detectedAlignedfileName)
-        correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, fromSyllable, toSyllable  )
-#         correctDuration= 0; totalDuration=1 
-        return correctDuration, totalDuration 
-    
-    
-    
+   
     ###### 1) load Lyrics
     lyrics = loadLyricsFromTextGridSentence(currSentence)
-#     if logger.level == logging.DEBUG:
-#     lyrics.printSyllables()
     
-    if withScores: # load from score instead
+    if withDurations: # load from score instead
         lyrics = musicXMLParser.getLyricsForSection(whichSentence) # indexing in python
 
     withSynthesis = True
-#     2) load features
-    lyricsWithModels, obsFeatures, dummyChunkURI  = loadSmallAudioFragment(lyrics,  URIrecordingNoExt, withSynthesis, fromTs, toTs)
-#     lyricsWithModels.printWordsAndStates()
-    
+
     ##### align
     usePersistentFiles = 'False'
     alpha = 0.97
@@ -117,15 +103,19 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     ONLY_MIDDLE_STATE = False
     params  = Parameters(alpha, ONLY_MIDDLE_STATE)
     
-    alignmentErrors, detectedTokenList, detectedPath = alignOneChunk(obsFeatures, lyricsWithModels, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, URIRecordingChunkNoExt)
+    lyricsWithModelsORacle = 'dummy'
+    if withOracle:
+        # get start and end phoneme idx from TextGrid
+        phonemeListExtracted = parsePhonemeIdxsFromTextGrid(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
+        lyricsWithModelsORacle = parsePhoenemeAnnoDursOracle(lyrics, phonemeListExtracted )
+     
+        
+    detectedTokenList, detectedPath = alignOneChunk( lyrics, withSynthesis, withOracle, lyricsWithModelsORacle, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, fromTs, toTs, URIrecordingNoExt)
     
 
-
-    correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, fromSyllable, toSyllable  )
+    correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, fromSyllableIdx, toSyllableIdx  )
     acc = correctDuration / totalDuration
     print "result is: " + str(acc)
-    
-    
     
     return correctDuration, totalDuration
 

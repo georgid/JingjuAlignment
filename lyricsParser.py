@@ -64,17 +64,17 @@ def createSyllables(annotationURI, fromSyllable, toSyllable):
     
     return listSyllables
 
-
 def divideIntoSentencesFromAnno(annotationURI):
     '''
     infer section/line timestamps from annotation-textgrid, 
     parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
+    #deprecated, use *WithSil instead
     '''
     
     whichLevel = 5 # read lines (sentences) tier
     annotationTokenList, annotationLinesListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
     
-    whichLevel = 3 # read syllables as pinyin 
+    whichLevel = 3 # read syllables in pinyin 
     syllablesList = TextGrid2WordList(annotationURI, whichLevel)
     annotationTokenList, syllablesList =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
 
@@ -93,7 +93,7 @@ def divideIntoSentencesFromAnno(annotationURI):
         
         fromSyllableIdx = syllablesList[syllablePointer][3]
         while syllablePointer < len(syllablesList) and float(syllablesList[syllablePointer][1]) <= currSentenceEnd: # syllables in currSentence
-            isEndOfSentence, syllableTxt = stripPunctuationSings(syllablesList[syllablePointer][2])
+            isEndOfSentence, syllableTxt = stripPunctuationSigns(syllablesList[syllablePointer][2])
             currSyllable = SyllableJingju(syllableTxt, -1)
             currSyllable.setDurationInMinUnit(1)
             currSectionSyllables.append(currSyllable)
@@ -108,6 +108,99 @@ def divideIntoSentencesFromAnno(annotationURI):
     return listSentences
 
 
+
+
+
+
+def divideIntoSentencesFromAnnoWithSil(annotationURI):
+    '''
+    infer section/line timestamps from annotation-textgrid, 
+    parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
+    '''
+    
+    highLevel = 5 # read lines (sentences) tier
+    dummy, annotationLinesListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, highLevel, 0, -1)
+    
+    lowLevel = 3 # read syllables in pinyin 
+    syllablesList, dummy =  readNonEmptyTokensTextGrid(annotationURI, lowLevel, 0, -1)
+
+    syllablePointer = 0
+    
+    listSentences = []
+    for currSentence in annotationLinesListNoPauses:
+        
+        currSentenceBeginTs = currSentence[0]
+        currSentenceEndTs = currSentence[1]
+
+        fromSyllableIdx, toSyllableIdx, syllablePointer, currSectionSyllables = \
+         _findBeginEndIndices(syllablesList, syllablePointer, currSentenceBeginTs, currSentenceEndTs, highLevel )
+        
+        listSentences.append(( currSentenceBeginTs, currSentenceEndTs, fromSyllableIdx, toSyllableIdx, currSectionSyllables))
+
+     
+    return listSentences
+
+
+def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBeginTs, highLevelEndTs, highLevel):
+    ''' 
+    find indices of lower level tier whihc align with indices of highLevel tier
+    @return: fromLowLevelTokenIdx, toLowLevelTokenIdx
+    @param lowerLevelTokenPointer: being updated, and returned 
+    '''
+    currSentenceSyllables = []
+    
+    
+    while lowLevelTokensList[lowerLevelTokenPointer][0] < highLevelBeginTs: # search for beginning
+        lowerLevelTokenPointer += 1
+    
+    if not lowLevelTokensList[lowerLevelTokenPointer][0] == highLevelBeginTs: # start Ts has to be aligned
+        sys.exit("token of lower layer has starting time {}, but expected {} from higher layer ".format(highLevelBeginTs, highLevel))
+    fromLowLevelTokenIdx = lowerLevelTokenPointer
+    while lowerLevelTokenPointer < len(lowLevelTokensList) and float(lowLevelTokensList[lowerLevelTokenPointer][1]) <= highLevelEndTs: # syllables in currSentence
+        
+        if highLevel == 5:
+            isEndOfSentence, syllableTxt = stripPunctuationSigns(lowLevelTokensList[lowerLevelTokenPointer][2])
+            if syllableTxt == '':
+                syllableTxt = 'REST'
+            currSyllable = SyllableJingju(syllableTxt, -1)
+            currSyllable.setDurationInMinUnit(1)
+            currSentenceSyllables.append(currSyllable)
+        
+        lowerLevelTokenPointer += 1
+    
+    currTokenEnd = lowLevelTokensList[lowerLevelTokenPointer - 1][1]
+    if not currTokenEnd == highLevelEndTs: # end Ts has to be aligned
+        sys.exit(" token of lower layer has ending time {}, but expected {} from higher layer ".format(currTokenEnd, highLevelEndTs))
+    toLowLevelTokenIdx = lowerLevelTokenPointer - 1
+    return  fromLowLevelTokenIdx, toLowLevelTokenIdx, lowerLevelTokenPointer, currSentenceSyllables
+
+
+
+def parsePhonemeIdxsFromTextGrid(annotationURI, fromSyllIdx, toSyllIdx):
+    '''
+    infer section/line timestamps from annotation-textgrid, 
+    parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
+    '''
+    
+    
+    highLevel = 3 # read syllables in pinyin 
+    syllablesList, dummy  =  readNonEmptyTokensTextGrid(annotationURI, highLevel, fromSyllIdx, toSyllIdx)
+    
+    beginSyllableTs = syllablesList[0][0]
+    endSyllableTs = syllablesList[-1][1]
+    
+    lowLevel = 0
+    phonemesList, dummy  =  readNonEmptyTokensTextGrid(annotationURI, lowLevel, 0, -1)
+    
+    phonemesPointer = 0
+    
+    fromPhonemeIdx, toPhonemeIdx, dummy, dummy = \
+         _findBeginEndIndices(phonemesList, phonemesPointer, beginSyllableTs, endSyllableTs, highLevel )
+    
+    return phonemesList[fromPhonemeIdx:toPhonemeIdx+1]
+
+
+
 def divideIntoSentencesFromAnnoOld(annotationURI):
         '''
         infer section/line timestamps from annotation-textgrid, 
@@ -120,7 +213,7 @@ def divideIntoSentencesFromAnnoOld(annotationURI):
 
         
         currSectionSyllables =  []
-        listSentences = []
+        listSentences = []  
         
         i = 0
         currSectionStartTime = annotationTokenListNoPauses[i][0]
@@ -129,7 +222,7 @@ def divideIntoSentencesFromAnnoOld(annotationURI):
         for i in range(len(annotationTokenListNoPauses)):
             
             token = annotationTokenListNoPauses[i]
-            isEndOfSentence, token[2] = stripPunctuationSings(token[2])
+            isEndOfSentence, token[2] = stripPunctuationSigns(token[2])
             if isEndOfSentence:
                 currSyllable = SyllableJingju(token[2], -1)
                 currSyllable.setDurationInMinUnit(1)
@@ -156,6 +249,9 @@ def loadLyricsFromTextGridSentence(currSentence):
     Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
     syllables = currSentence[4]
     lyrics = syllables2Lyrics(syllables)
+    
+    #     if logger.level == logging.DEBUG:
+#     lyrics.printSyllables()
 
     return lyrics
 
@@ -180,7 +276,7 @@ def syllables2Lyrics(syllables):
         return lyrics
     
   
-def stripPunctuationSings(string_):
+def stripPunctuationSigns(string_):
     isEndOfSentence = False
     if string_.endswith(u'\u3002') or string_.endswith(u'\uff0c') \
              or string_.endswith('？') or string_.endswith('！') or string_.endswith('：') \

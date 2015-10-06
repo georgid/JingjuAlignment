@@ -8,7 +8,9 @@ Created on Sep 23, 2015
 '''
 from doitOneChunkAlign import doitOneChunkAlign
 import os
-from lyricsParser import divideIntoSentencesFromAnno
+from lyricsParser import divideIntoSentencesFromAnno,\
+    divideIntoSentencesFromAnnoWithSil
+from MusicXmlParser import MusicXMLParser
 
 def readPinYinTest():
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/ariasAnnotated/2-16_伴奏：听兄言不由我花容惊变.TextGrid'
@@ -18,22 +20,28 @@ def readPinYinTest():
 
 def doitOneChunkTest():
     '''
-    meant to be run for withScores = 0
-    '''
+    test
+        '''
     URIrecordingNoExt = os.path.abspath('dan-xipi_01')
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02'
      
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
-    whichSentence = 0
-         
-    listSentences = divideIntoSentencesFromAnno(lyricsTextGrid) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
-    musicXMLParser = 'dummy'
-    sentence = listSentences[whichSentence]
+            
+   
+    whichSentence = 1
 
-#   meant to be run for withScores = 0
-    withScores = 0
+    ###########################################################
+         
+    withDurations = 0
+    musicXmlURI = URIrecordingNoExt + '_score.xml'
+    musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
+
+    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure
+    sentence = listSentences[whichSentence]
+        
     withVocalPrediction = 0
-    currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, sentence, withScores, withVocalPrediction)  
+    withOracle = 1
+    currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, sentence, withOracle, withDurations, withVocalPrediction)  
  
     currAcc = currCorrectDuration / currTotalDuration
     print "sentence {}: acc ={:.2f}".format(whichSentence, currAcc)
