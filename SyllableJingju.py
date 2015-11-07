@@ -8,7 +8,8 @@ import sys
 import sys
 
 from numpy.ma.core import ceil
-
+from PhonetizerDict import loadXSAMPAPhonetizers, toXSAMPAPhonemes,\
+    tokenizePhonemes
 
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
@@ -40,28 +41,18 @@ class SyllableJingju(_SyllableBase):
         
             self.durationPhonemes = None
         
-        def createFakePhonemeClasses(self, phonemesList):
+
+
+        def createPhonemeClasses(self, phonemesList):
+            '''
+            no mapping to turkish
+            '''
             for phonemeID in phonemesList:
-                self.phonemes.append(Phoneme(phonemeID))
-
-
-        def createPhonemeClasses(self, mandarinPhonemes):
-            '''
-            create Phonemes objects form phoneme IDs. map to turkish METU
-            '''
-            if not Phonetizer.lookupTable:
-                sys.exit("Phonetizer.lookupTable not defined. do Phonetizer.initlookupTable at beginning of all code")
-            
-            turkihMETUphonemeIDs = []
-            for ph in mandarinPhonemes:
-                turkihMETUphonemeIDs = Phonetizer.grapheme2phonemeList(ph, turkihMETUphonemeIDs)
-            
-        #### create Phonemes as field
-            for phonemeID in turkihMETUphonemeIDs:
                 self.phonemes.append(Phoneme(phonemeID))
             
             if self.hasShortPauseAtEnd:
                 self.phonemes.append(Phoneme('sp'))
+
 
         def expandToPhonemes(self):
             '''
@@ -85,16 +76,24 @@ class SyllableJingju(_SyllableBase):
                 self.hasShortPauseAtEnd = False
                 return
             
-            if self.text not in Phonetizer.phoneticDict:
-                sys.exit("unknown syllable {} Please add it to the dict".format(self.text))
-                  
-            mandarinPhonemes = Phonetizer.phoneticDict[self.text]
+           
+            
+            if self.text in Phonetizer.phoneticDict:
+                xsampaPhonemesGrouped = Phonetizer.phoneticDict[self.text]
+            else:
+                logger.warning(" syllable  {} not in dict".format(self.text))
+                consonants, consonants2, vocals, specials = loadXSAMPAPhonetizers()
+                xsampaPhonemesGrouped = toXSAMPAPhonemes(self.text, consonants, consonants2, vocals, specials)
+                
+                Phonetizer.phoneticDict[self.text] = xsampaPhonemesGrouped # add syllable to dict
+            
+            xsampaPhonemes = tokenizePhonemes(xsampaPhonemesGrouped)
+
               
             ####################
             #### create Phonemes objects form phoneme IDs. map to turkish METU
             
-#             self.createPhonemeClasses(mandarinPhonemes)
-            self.createFakePhonemeClasses(mandarinPhonemes)
+            self.createPhonemeClasses(xsampaPhonemes)
         
 
         

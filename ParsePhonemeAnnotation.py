@@ -12,7 +12,7 @@ import os
 import sys
 from collections import deque
 from PhonetizerDict import loadXSAMPAPhonetizers, toXSAMPAPhonemes,\
-    createDictSyll2XSAMPA
+    createDictSyll2XSAMPA, tokenizePhonemes
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
@@ -52,44 +52,6 @@ def validatePhonemesWholeAria(lyricsTextGrid):
 
 
 
-
-
-
-
-
-
-
-
-def tokenizePhonemes(phonemesSAMPA):
-    '''
-    convert string phoneme representation of a syllable to a python list
-    phonemes has initial and rest parts
-    '''
-    
-    phonemesSAMPAQueue = deque([])
-
-    #initial part
-    if len(phonemesSAMPA) == 2:
-        
-        phonemesSAMPAQueue.append(phonemesSAMPA[0])
-        phonemesSAMPARest = phonemesSAMPA[1]
-    else:
-        phonemesSAMPARest = phonemesSAMPA
-    
-    # tokenize
-    charsSAMPA = list(phonemesSAMPARest)
-    
-    for char in charsSAMPA:
-        if char == '^' or char == '"' or char=='\\' or char=="'":
-            charsSAMPALast = phonemesSAMPAQueue.pop()
-            charsSAMPALast += char
-            phonemesSAMPAQueue.append(charsSAMPALast)
-        
-        else:
-            phonemesSAMPAQueue.append(char)
-    
-#     if last == ''
-    return phonemesSAMPAQueue
 
 
 def parsePhonemes(lyricsTextGrid, syllableIdx):

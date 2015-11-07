@@ -15,7 +15,7 @@ if pathHMMDuration not in sys.path:
 
 import Phonetizer
 
-
+from collections import deque
 
 
 def createDictSyll2XSAMPA():
@@ -87,4 +87,37 @@ def loadXSAMPAPhonetizers():
     vocals = Phonetizer.readLookupTable(os.path.join(currDir, 'syl2phoneme.vowels.txt'))
     specials = Phonetizer.readLookupTable(os.path.join(currDir, 'syl2phoneme.specials.txt'))
     return consonants, consonants2, vocals, specials
+
+
+
+def tokenizePhonemes(phonemesSAMPA):
+    '''
+    convert string phoneme representation of a syllable to a python list
+    phonemes has initial and rest parts
+    '''
+    
+    phonemesSAMPAQueue = deque([])
+
+    #initial part
+    if len(phonemesSAMPA) == 2:
+        
+        phonemesSAMPAQueue.append(phonemesSAMPA[0])
+        phonemesSAMPARest = phonemesSAMPA[1]
+    else:
+        phonemesSAMPARest = phonemesSAMPA
+    
+    # tokenize
+    charsSAMPA = list(phonemesSAMPARest)
+    
+    for char in charsSAMPA:
+        if char == '^' or char == '"' or char=='\\' or char=="'":
+            charsSAMPALast = phonemesSAMPAQueue.pop()
+            charsSAMPALast += char
+            phonemesSAMPAQueue.append(charsSAMPALast)
+        
+        else:
+            phonemesSAMPAQueue.append(char)
+    
+#     if last == ''
+    return phonemesSAMPAQueue
 

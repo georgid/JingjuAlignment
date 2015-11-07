@@ -5,7 +5,7 @@ Created on Nov 6, 2015
 '''
 from lyricsParser import splitThePhoneme, splitDuplicateSyllablePhonemes
 from Phoneme import Phoneme
-from ParsePhonemeAnnotation import tokenizePhonemes
+from PhonetizerDict import tokenizePhonemes
 
 def testSplitThePhoneme():
     

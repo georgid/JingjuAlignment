@@ -7,6 +7,7 @@ Created on Oct 1, 2015
 '''
 import os
 import sys
+from PhonetizerDict import tokenizePhonemes
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
@@ -18,8 +19,7 @@ if parentDir + 'utilsLyrics' not in sys.path:
     sys.path.append(dirUtilsLyrics)
     
     
-from ParsePhonemeAnnotation import     validatePhonemesOneSyll, tokenizePhonemes, validatePhonemesWholeAria
-from lyricsParser import divideIntoSentencesFromAnnoWithSil
+from ParsePhonemeAnnotation import     validatePhonemesOneSyll,  validatePhonemesWholeAria
 
 
 def validatePhonemesOneSyllTest():
