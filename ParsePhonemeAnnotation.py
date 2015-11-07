@@ -190,7 +190,7 @@ def loadPhonemesFromTextGridOracle(lyricsTextGrid, fromSyllableIdx, toSyllableId
     phonemesAnnoAll = []
     
     for syllableIdx in range(fromSyllableIdx,toSyllableIdx+1):
-            phonemesAnno = loadPhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA)
+            phonemesAnno, phonemesDictSAMPAQueue = loadPhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA)
             phonemesAnnoAll.extend(phonemesAnno)
 
     return phonemesAnnoAll       
@@ -211,7 +211,7 @@ def loadPhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA):
     phonemesAnno = splitDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPAQueue)
    
   
-    return phonemesAnno
+    return phonemesAnno, phonemesDictSAMPAQueue
     
     
 
@@ -266,7 +266,7 @@ def validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA):
 
 def loadPhonemesInAnnoAndDict(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA):
     '''
-    load list of phonemes from annotation TextGrid, sieve out duplicate  phonemes 
+    For one syllable, load list of phonemes from annotation TextGrid, sieve out duplicate  phonemes 
     return queue 
     '''
     phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx, syllableText = parsePhonemes(lyricsTextGrid, syllableIdx)
@@ -289,3 +289,22 @@ def loadPhonemesInAnnoAndDict(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA):
     phonemesDictSAMPAQueue = tokenizePhonemes(phonemesDictSAMPA)
     
     return phonemesAnno, phonemesDictSAMPAQueue, phonemesDictSAMPA, syllableText
+
+
+
+def loadPhonemesFromAnno(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA):
+    '''
+    For one syllable, load list of phonemes from annotation TextGrid, sieve out duplicate  phonemes 
+    '''
+    phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx, syllableText = parsePhonemes(lyricsTextGrid, syllableIdx)
+    
+    if syllableText == '': # skip empty syllables
+        
+        phonemesAnno = []
+        return phonemesAnno,syllableText
+    
+# details tier has same phoneme duplicated
+    phonemesAnno = removeDuplicatePhonemes(phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx)
+
+    
+    return phonemesAnno,  syllableText

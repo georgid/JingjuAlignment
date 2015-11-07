@@ -241,7 +241,7 @@ def loadPhonemesFromTextGrid(annotationURI, fromSyllIdx, toSyllIdx):
     beginSyllableTs = syllablesList[0][0]
     endSyllableTs = syllablesList[-1][1]
     
-    lowLevel = tierAliases.details
+    lowLevel = tierAliases.phonemes
     phonemesList, dummy  =  readNonEmptyTokensTextGrid(annotationURI, lowLevel, 0, -1)
     
     phonemesPointer = 0
@@ -313,12 +313,13 @@ def syllables2Lyrics(syllables):
             listWords.append(word)
     
 
-#         Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
-        Phonetizer.initLookupTable(True,  'XSAMPA2METUphonemeLookupTableSYNTH')
+        Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
+#         Phonetizer.initLookupTable(True,  'XSAMPA2METUphonemeLookupTableSYNTH')
 
         # load phonetic dict 
-#         Phonetizer.initPhoneticDict('syl2phn46.txt')
-        Phonetizer.phoneticDict = createDictSyll2XSAMPA()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+        Phonetizer.initPhoneticDict('syl2phn46.txt')
+#         Phonetizer.phoneticDict = createDictSyll2XSAMPA()  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
     
         ## 3) create lyrics
         # here is called Syllable.expandToPhonemes.

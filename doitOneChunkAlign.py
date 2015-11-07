@@ -52,6 +52,7 @@ from doitOneChunk import alignOneChunk
 
 pathHMM = os.path.join(parentDir, 'HMMDuration')
 from hmm.examples.main  import loadSmallAudioFragment,  parsePhoenemeAnnoDursOracle
+import hmm
 
 from Utilz import readListOfListTextFile
 
@@ -108,10 +109,10 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     if withOracle:
         # get start and end phoneme idx from TextGrid
         phonemeListExtracted = loadPhonemesFromTextGrid(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
-        phonemeListExtracted = loadPhonemesFromTextGridOracle(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
+#         phonemeListExtracted = loadPhonemesFromTextGridOracle(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
         
         # TODO: compare format of phonemeListExtracted
-        lyricsWithModelsORacle = parsePhoenemeAnnoDursOracle(lyrics, phonemeListExtracted )
+        lyricsWithModelsORacle = hmm.examples.main.parsePhoenemeAnnoDursOracle(lyrics, phonemeListExtracted )
      
         
     detectedTokenList, detectedPath = alignOneChunk( lyrics, withSynthesis, withOracle, lyricsWithModelsORacle, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, fromTs, toTs, URIrecordingNoExt)

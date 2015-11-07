@@ -40,12 +40,18 @@ class SyllableJingju(_SyllableBase):
         
             self.durationPhonemes = None
         
-        def createFakePhonemeClasses(self, phonemesList):
+        def createPhonemeClasses(self, phonemesList):
+            '''
+            no mapping to turkish
+            '''
             for phonemeID in phonemesList:
                 self.phonemes.append(Phoneme(phonemeID))
+            
+            if self.hasShortPauseAtEnd:
+                self.phonemes.append(Phoneme('sp'))
 
 
-        def createPhonemeClasses(self, mandarinPhonemes):
+        def mandarin2METUbet(self, mandarinPhonemes):
             '''
             create Phonemes objects form phoneme IDs. map to turkish METU
             '''
@@ -57,11 +63,8 @@ class SyllableJingju(_SyllableBase):
                 turkihMETUphonemeIDs = Phonetizer.grapheme2phonemeList(ph, turkihMETUphonemeIDs)
             
         #### create Phonemes as field
-            for phonemeID in turkihMETUphonemeIDs:
-                self.phonemes.append(Phoneme(phonemeID))
-            
-            if self.hasShortPauseAtEnd:
-                self.phonemes.append(Phoneme('sp'))
+            self.createPhonemeClasses(turkihMETUphonemeIDs)
+
 
         def expandToPhonemes(self):
             '''
@@ -93,8 +96,8 @@ class SyllableJingju(_SyllableBase):
             ####################
             #### create Phonemes objects form phoneme IDs. map to turkish METU
             
+            self.mandarin2METUbet(mandarinPhonemes)
 #             self.createPhonemeClasses(mandarinPhonemes)
-            self.createFakePhonemeClasses(mandarinPhonemes)
         
 
         
@@ -116,7 +119,7 @@ class SyllableJingju(_SyllableBase):
             #copy to local var
             consonant_duration = ParametersAlgo.CONSONANT_DURATION
             
-            # Workaraound: reduce consonant durationInMinUnit for syllables with very short note value. 
+            # Workaround: reduce consonant durationInMinUnit for syllables with very short note value. 
             while (self.getNumPhonemes() - 1) * consonant_duration >= self.durationInNumFrames:
                 logger.warn("Syllable {} has very short durationInMinUnit: {} . reducing the fixed durationInMinUnit of consonants".format(self.text, self.durationInMinUnit) )
                 consonant_duration /=2
