@@ -5,9 +5,8 @@ Created on Oct 13, 2014
 '''
 import sys
 import os
-from MusicXmlParser import MusicXMLParser, syllables2Lyrics
-from lyricsParser import loadLyricsFromTextGridSentence,\
-    parsePhonemeIdxsFromTextGrid
+from lyricsParser import loadPhonemesFromTextGrid, syllables2Lyrics
+from ParsePhonemeAnnotation import loadPhonemesFromTextGridOracle
 
 
 
@@ -89,7 +88,8 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     
    
     ###### 1) load Lyrics
-    lyrics = loadLyricsFromTextGridSentence(currSentence)
+    syllables = currSentence[4]
+    lyrics = syllables2Lyrics(syllables)
     
     if withDurations: # load from score instead
         lyrics = musicXMLParser.getLyricsForSection(whichSentence) # indexing in python
@@ -104,9 +104,13 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     params  = Parameters(alpha, ONLY_MIDDLE_STATE)
     
     lyricsWithModelsORacle = 'dummy'
+    
     if withOracle:
         # get start and end phoneme idx from TextGrid
-        phonemeListExtracted = parsePhonemeIdxsFromTextGrid(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
+        phonemeListExtracted = loadPhonemesFromTextGrid(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
+        phonemeListExtracted = loadPhonemesFromTextGridOracle(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
+        
+        # TODO: compare format of phonemeListExtracted
         lyricsWithModelsORacle = parsePhoenemeAnnoDursOracle(lyrics, phonemeListExtracted )
      
         

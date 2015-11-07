@@ -29,7 +29,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class SyllableJingju(_SyllableBase):
-        ''' syllables class for each chinse/jingju character in PINYIN
+        ''' syllables class for each chinse/jingju phoneme (using phonemeSet mandarin from Weng Lei)
         BUT not meant to be used alone, instead Syllable is a part of a Word class
         '''
         def __init__(self, text, noteNum):
@@ -40,12 +40,34 @@ class SyllableJingju(_SyllableBase):
         
             self.durationPhonemes = None
         
+        def createFakePhonemeClasses(self, phonemesList):
+            for phonemeID in phonemesList:
+                self.phonemes.append(Phoneme(phonemeID))
+
+
+        def createPhonemeClasses(self, mandarinPhonemes):
+            '''
+            create Phonemes objects form phoneme IDs. map to turkish METU
+            '''
+            if not Phonetizer.lookupTable:
+                sys.exit("Phonetizer.lookupTable not defined. do Phonetizer.initlookupTable at beginning of all code")
+            
+            turkihMETUphonemeIDs = []
+            for ph in mandarinPhonemes:
+                turkihMETUphonemeIDs = Phonetizer.grapheme2phonemeList(ph, turkihMETUphonemeIDs)
+            
+        #### create Phonemes as field
+            for phonemeID in turkihMETUphonemeIDs:
+                self.phonemes.append(Phoneme(phonemeID))
+            
+            if self.hasShortPauseAtEnd:
+                self.phonemes.append(Phoneme('sp'))
+
         def expandToPhonemes(self):
             '''
             one-to-one function: PINYIN characters to turkish METU. 
             as intermediate step mandarin phoneset are used.   
             '''
-            
             
             ######################
             ### pinyin to mandarin phonemeSet
@@ -69,22 +91,10 @@ class SyllableJingju(_SyllableBase):
             mandarinPhonemes = Phonetizer.phoneticDict[self.text]
               
             ####################
-            #### mandarin to turkish METU
+            #### create Phonemes objects form phoneme IDs. map to turkish METU
             
-            if not Phonetizer.lookupTable:
-                sys.exit("Phonetizer.lookupTable not defined. do Phonetizer.initlookupTable at beginning of all code")   
-
-            phonemeIDs = []
-            
-            for ph in mandarinPhonemes:
-                phonemeIDs = Phonetizer.grapheme2phonemeList(ph, phonemeIDs)
-          
-            #### create Phonemes as field
-            for phonemeID in phonemeIDs:
-                self.phonemes.append(Phoneme(phonemeID))
-        
-            if self.hasShortPauseAtEnd:
-                self.phonemes.append(Phoneme('sp'))
+#             self.createPhonemeClasses(mandarinPhonemes)
+            self.createFakePhonemeClasses(mandarinPhonemes)
         
 
         

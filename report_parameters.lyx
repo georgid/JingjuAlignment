@@ -122,7 +122,83 @@ Experimental Setup
 \end_layout
 
 \begin_layout Subsection
-setting one: without score: each syllable gets equal duration
+Setting zero: oracle durations
+\end_layout
+
+\begin_layout Standard
+Oracle durations ..
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+done by setting parameter withOracle in doitOneChunkAlign.doitOneChunkAlign
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For each state for a phoneme, for the frames of its duration assign 1 in
+ B_map.
+ So B_map is zero for all other phonemes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+IMPL: To decode with oracle phonemes durations still phoneme models should
+ be used.
+ This is so because we use code from LyricsWithModels as utility to expand
+ models to their states.
+ Therefore we need to load htk models corresponding to each phoneme parsed
+ from annotation.
+ Done in hmm.examples.main.parsePhoenemeAnnoDursOracle()
+\end_layout
+
+\begin_layout Plain Layout
+===========
+\end_layout
+
+\begin_layout Plain Layout
+IMPL: state are assigned 1-s in:
+\end_layout
+
+\begin_layout Plain Layout
+hmm.continuous._ContinuousHMM._ContinuousHMM._mapBOracle
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+without score: equal duration with Turkish model
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+X_SAMPA or METUBET shitched in lyricsParser.syllables2Lyrics
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+setting one: without score: each syllable gets equal duration with Chinese
+ model 
 \end_layout
 
 \begin_layout Standard
@@ -221,7 +297,7 @@ deviationInSec
 \begin_inset Text
 
 \begin_layout Plain Layout
-laosheng-erhuang_04
+laosheng-erhuang_04 (14 min)
 \end_layout
 
 \end_inset
@@ -230,7 +306,7 @@ laosheng-erhuang_04
 \begin_inset Text
 
 \begin_layout Plain Layout
-laosheng-xipi_02
+laosheng-xipi_02 (4 min)
 \end_layout
 
 \end_inset
@@ -259,7 +335,7 @@ dan-xipi_02
 \begin_inset Text
 
 \begin_layout Plain Layout
-without score
+without reading score duration
 \end_layout
 
 \end_inset
@@ -427,7 +503,7 @@ without score
 \begin_inset Text
 
 \begin_layout Plain Layout
-with score durarions
+with reading score durarions
 \end_layout
 
 \end_inset
@@ -445,9 +521,7 @@ with score durarions
 \begin_inset Text
 
 \begin_layout Plain Layout
-
-\series bold
-32.01
+32.01 ()
 \end_layout
 
 \end_inset
@@ -458,7 +532,7 @@ with score durarions
 \begin_layout Plain Layout
 
 \series bold
-45.05
+45.05 ()
 \end_layout
 
 \end_inset
@@ -469,7 +543,7 @@ with score durarions
 \begin_layout Plain Layout
 
 \series bold
-63.77
+63.77 (60.20)
 \end_layout
 
 \end_inset
@@ -509,6 +583,8 @@ with score durarions
 \begin_inset Text
 
 \begin_layout Plain Layout
+
+\series bold
 38.74
 \end_layout
 

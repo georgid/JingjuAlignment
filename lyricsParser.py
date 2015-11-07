@@ -10,7 +10,13 @@ import sys
 import os
 import json
 
+import logging
+from collections import deque
 
+
+from PhonetizerDict import createDictSyll2XSAMPA
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
@@ -30,7 +36,7 @@ pathHMMDuration = os.path.join(parentDir, 'AlignmentDuration')
 if pathHMMDuration not in sys.path:
     sys.path.append(pathHMMDuration)
 
-
+from Phoneme import Phoneme
 from Phonetizer import Phonetizer
 
 from SyllableJingju import SyllableJingju
@@ -38,6 +44,8 @@ from SymbTrParser import createWord
 
 from Lyrics import Lyrics
     
+from WordLevelEvaluator import tierAliases
+
 
     
             
@@ -71,10 +79,10 @@ def divideIntoSentencesFromAnno(annotationURI):
     #deprecated, use *WithSil instead
     '''
     
-    whichLevel = 5 # read lines (sentences) tier
+    whichLevel = tierAliases.line # read lines (sentences) tier
     annotationTokenList, annotationLinesListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
     
-    whichLevel = 3 # read syllables in pinyin 
+    whichLevel = tierAliases.pinyin # read syllables in pinyin 
     syllablesList = TextGrid2WordList(annotationURI, whichLevel)
     annotationTokenList, syllablesList =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
 
@@ -108,9 +116,52 @@ def divideIntoSentencesFromAnno(annotationURI):
     return listSentences
 
 
+def splitDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPAQueue):
+    phonemesMerged = []
+
+    # make queue from phoneme anno
+    phonemesAnnoQueue = deque(phonemesAnno)
+    
+    
+    while len(phonemesDictSAMPAQueue) != 0:
+        
+            dictPhoneme = phonemesDictSAMPAQueue.popleft()
+            
+            if len(phonemesAnnoQueue) == 0:
+                logger.error("no phoenemes in annotation while there are more in dict")
+                break
+            currPhoneme = phonemesAnnoQueue.popleft()
+            
+            if not currPhoneme.ID == dictPhoneme:
+                 logger.warning("in annotation says {} but expected {} from dict".format(currPhoneme.ID, dictPhoneme)) # todo: put the two new back in queue
+                 
+                 # split
+                 splitPhoneme1, splitPhoneme2 = splitThePhoneme(currPhoneme, dictPhoneme)
+                 phonemesAnnoQueue.appendleft(splitPhoneme2)
+                 phonemesAnnoQueue.appendleft(splitPhoneme1)
+                 phonemesDictSAMPAQueue.appendleft(dictPhoneme)
+            
+            else: phonemesMerged.append(currPhoneme)
+                
+                 
+    return phonemesMerged
 
 
-
+def splitThePhoneme(doublePhoneme, firstPhoenemeTxt):
+    idx = doublePhoneme.ID.find(firstPhoenemeTxt)
+    secondPhonemeTxt = doublePhoneme.ID[idx + len(firstPhoenemeTxt):]
+    
+    splitPhoneme1 = Phoneme(firstPhoenemeTxt)
+    splitPhoneme1.setBeginTs(doublePhoneme.beginTs)
+    ts = doublePhoneme.beginTs +  (doublePhoneme.endTs-doublePhoneme.beginTs) /2
+    splitPhoneme1.setEndTs(ts)
+    
+    splitPhoneme2 = Phoneme(secondPhonemeTxt)
+    splitPhoneme2.setBeginTs(ts)
+    splitPhoneme2.setEndTs(doublePhoneme.endTs)
+    
+    return splitPhoneme1, splitPhoneme2
+    
 
 def divideIntoSentencesFromAnnoWithSil(annotationURI):
     '''
@@ -118,10 +169,10 @@ def divideIntoSentencesFromAnnoWithSil(annotationURI):
     parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
     '''
     
-    highLevel = 5 # read lines (sentences) tier
+    highLevel = tierAliases.line # read lines (sentences) tier
     dummy, annotationLinesListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, highLevel, 0, -1)
     
-    lowLevel = 3 # read syllables in pinyin 
+    lowLevel = tierAliases.pinyin # read syllables in pinyin 
     syllablesList, dummy =  readNonEmptyTokensTextGrid(annotationURI, lowLevel, 0, -1)
 
     syllablePointer = 0
@@ -153,12 +204,13 @@ def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBe
     while lowLevelTokensList[lowerLevelTokenPointer][0] < highLevelBeginTs: # search for beginning
         lowerLevelTokenPointer += 1
     
-    if not lowLevelTokensList[lowerLevelTokenPointer][0] == highLevelBeginTs: # start Ts has to be aligned
-        sys.exit("token of lower layer has starting time {}, but expected {} from higher layer ".format(highLevelBeginTs, highLevel))
+    currTokenBegin = lowLevelTokensList[lowerLevelTokenPointer][0]
+    if not currTokenBegin == highLevelBeginTs: # start Ts has to be aligned
+        logger.warning("token of lower layer has starting time {}, but expected {} from higher layer ".format(currTokenBegin, highLevelBeginTs))
     fromLowLevelTokenIdx = lowerLevelTokenPointer
     while lowerLevelTokenPointer < len(lowLevelTokensList) and float(lowLevelTokensList[lowerLevelTokenPointer][1]) <= highLevelEndTs: # syllables in currSentence
         
-        if highLevel == 5:
+        if highLevel == tierAliases.line:
             isEndOfSentence, syllableTxt = stripPunctuationSigns(lowLevelTokensList[lowerLevelTokenPointer][2])
             if syllableTxt == '':
                 syllableTxt = 'REST'
@@ -170,26 +222,26 @@ def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBe
     
     currTokenEnd = lowLevelTokensList[lowerLevelTokenPointer - 1][1]
     if not currTokenEnd == highLevelEndTs: # end Ts has to be aligned
-        sys.exit(" token of lower layer has ending time {}, but expected {} from higher layer ".format(currTokenEnd, highLevelEndTs))
+        logger.warning(" token of lower layer has ending time {}, but expected {} from higher layer ".format(currTokenEnd, highLevelEndTs))
     toLowLevelTokenIdx = lowerLevelTokenPointer - 1
     return  fromLowLevelTokenIdx, toLowLevelTokenIdx, lowerLevelTokenPointer, currSentenceSyllables
 
 
 
-def parsePhonemeIdxsFromTextGrid(annotationURI, fromSyllIdx, toSyllIdx):
+def loadPhonemesFromTextGrid(annotationURI, fromSyllIdx, toSyllIdx):
     '''
     infer section/line timestamps from annotation-textgrid, 
     parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
     '''
     
     
-    highLevel = 3 # read syllables in pinyin 
+    highLevel = tierAliases.pinyin # read syllables in pinyin 
     syllablesList, dummy  =  readNonEmptyTokensTextGrid(annotationURI, highLevel, fromSyllIdx, toSyllIdx)
     
     beginSyllableTs = syllablesList[0][0]
     endSyllableTs = syllablesList[-1][1]
     
-    lowLevel = 0
+    lowLevel = tierAliases.details
     phonemesList, dummy  =  readNonEmptyTokensTextGrid(annotationURI, lowLevel, 0, -1)
     
     phonemesPointer = 0
@@ -245,18 +297,14 @@ def divideIntoSentencesFromAnnoOld(annotationURI):
         return listSentences
     
     
-def loadLyricsFromTextGridSentence(currSentence):
-    Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
-    syllables = currSentence[4]
-    lyrics = syllables2Lyrics(syllables)
-    
-    #     if logger.level == logging.DEBUG:
-#     lyrics.printSyllables()
 
-    return lyrics
 
 
 def syllables2Lyrics(syllables):
+        '''
+        input: sylables as text
+        creates objects of class Lyrics consisting of objects of class Syllable 
+        '''
         
         listWords = []
         for syllable in syllables:
@@ -265,10 +313,12 @@ def syllables2Lyrics(syllables):
             listWords.append(word)
     
 
-        Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
+#         Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
+        Phonetizer.initLookupTable(True,  'XSAMPA2METUphonemeLookupTableSYNTH')
 
         # load phonetic dict 
-        Phonetizer.initPhoneticDict('syl2phn46.txt')                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+#         Phonetizer.initPhoneticDict('syl2phn46.txt')
+        Phonetizer.phoneticDict = createDictSyll2XSAMPA()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
     
         ## 3) create lyrics
         # here is called Syllable.expandToPhonemes.

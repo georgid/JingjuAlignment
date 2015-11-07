@@ -23,23 +23,32 @@ def doitOneChunkTest():
     test
         '''
     URIrecordingNoExt = os.path.abspath('dan-xipi_01')
+    
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02'
-     
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/yutangchun_yutangchun'
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/xixiangji_biyuntian'
+
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/wangjiangting_dushoukong'
+ 
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
-            
+    
+       
    
     whichSentence = 1
 
     ###########################################################
          
     withDurations = 0
-    musicXmlURI = URIrecordingNoExt + '_score.xml'
-    musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
-
+    musicXMLParser = None
+#     musicXmlURI = URIrecordingNoExt + '_score.xml'
+#     musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
+    
+    
     listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure
     sentence = listSentences[whichSentence]
         
     withVocalPrediction = 0
+    
     withOracle = 1
     currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, sentence, withOracle, withDurations, withVocalPrediction)  
  

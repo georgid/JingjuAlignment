@@ -23,6 +23,7 @@ bai	B   AI
 bao	B   AO
 beng	B   E   NG
 ben	B   E   NN
+be	B	E 
 bei	B   EI
 bi	B   I
 bing	B   I   NG
@@ -192,6 +193,7 @@ lun	L   U   NN
 luan	L   UA  NN
 lv	L   V
 lue	L   VE
+lui	
 luo	L   W   O
 lia	L   Y   A
 liao	L   Y   EO
@@ -233,6 +235,7 @@ nie	N   IE
 nong	N   O   NG
 nou	N   OU
 nu	N   U
+nui	
 nuan	N   UA  NN
 nv	N   V
 nue	N   VE
@@ -253,6 +256,7 @@ pin	P   I   NN
 pian	P   IE  NN
 pie	P   IE
 po	P   O
+pong	
 pou	P   OU
 pu	P   U
 piao	P   Y   EO
@@ -312,6 +316,7 @@ shei	SH  EI
 shi	SH  IH
 shou	SH  OU
 shu	SH  U
+shue	
 shun	SH  U   NN
 shuang	SH  UA  NG
 shuan	SH  UA  NN
@@ -339,6 +344,7 @@ tuan	T   UA  NN
 tui	T   W   EI
 tuo	T   W   O
 tiao	T   Y   EO
+uo	
 wa	W   A
 wang	W   A   NG
 wan	W   A   NN

@@ -29,7 +29,7 @@ iang	jAN
 in	in
 ing	iN
 iong	jUN
-ü	y
-üe	H9
-üan	HEn
-ün	yn
+v	y
+ve	H9
+van	HEn
+vn	yn

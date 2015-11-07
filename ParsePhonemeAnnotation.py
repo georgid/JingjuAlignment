@@ -5,11 +5,14 @@ Created on Oct 6, 2015
 '''
 
 from lyricsParser import _findBeginEndIndices, stripPunctuationSigns,\
-    divideIntoSentencesFromAnnoWithSil, divideIntoSentencesFromAnno
+    divideIntoSentencesFromAnnoWithSil, divideIntoSentencesFromAnno,\
+    splitDuplicateSyllablePhonemes
+from lyricsParser import logger
 import os
 import sys
 from collections import deque
-from aetools import Error
+from PhonetizerDict import loadXSAMPAPhonetizers, toXSAMPAPhonemes,\
+    createDictSyll2XSAMPA
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
@@ -28,9 +31,13 @@ if pathHMMDuration not in sys.path:
 
 
 import Phonetizer
+from Phoneme import Phoneme
 
 
 def validatePhonemesWholeAria(lyricsTextGrid):
+    '''
+    validates if annotated phonemes are corresponmding to automatically expanded from dict
+    '''
     listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure. 
     dictSyll2XSAMPA = createDictSyll2XSAMPA()
     
@@ -42,57 +49,16 @@ def validatePhonemesWholeAria(lyricsTextGrid):
              
             validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA)
 
-def createDictSyll2XSAMPA():
-        '''
-        create table pinyin Syllables -> phonemes in XSAMPA 
-        '''
-        
-        # load pinyin lyllables
-        currDir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) )
-        
-        pinyinSyllDict = Phonetizer.readLookupTable(os.path.join(currDir, 'syl2phn46.txt'))
 
-        # load mappings for consonants, vowels, specials
-        consonants = Phonetizer.readLookupTable(os.path.join(currDir, 'syl2phoneme.consonants.txt'))
-        consonants2 = Phonetizer.readLookupTable(os.path.join(currDir,'syl2phoneme.consonants2.txt'))
 
-        vocals = Phonetizer.readLookupTable(os.path.join(currDir,'syl2phoneme.vowels.txt'))
-        specials = Phonetizer.readLookupTable(os.path.join(currDir,'syl2phoneme.specials.txt'))
-        
-        mapDict = {}
-        
-        for pinyinSyll in pinyinSyllDict:
-            
-            xSampaPhonemes = []
-            if pinyinSyll in specials:
-               xSampaPhonemes = specials[pinyinSyll] 
-               mapDict[pinyinSyll] = xSampaPhonemes
-               continue # specials are whole syllable, so we are done
-            
-            foundConsonant = 0
-            for consonant in consonants2:  # initial is consonant of two chars
-                if pinyinSyll.startswith(consonant):
-                    pinyinSyllRest = pinyinSyll[len(consonant):]
-                    xSampaPhonemes.append(consonants2[consonant])
-                    foundConsonant = 1     
-                    break # cannot start with other consonant
-                
-            if not foundConsonant:  # initial is consonant of one char
-                    for consonant in consonants: 
-                        if pinyinSyll.startswith(consonant):
-                            pinyinSyllRest = pinyinSyll[len(consonant):]
-                            xSampaPhonemes.append(consonants[consonant])     
-                            break # cannot start with other consonant
-            
-            for vocal in vocals:
-                if pinyinSyllRest == vocal:
-                    xSampaPhonemes.append(vocals[vocal])
-                    break # cannot end with other vocal
-                
-            mapDict[pinyinSyll] = xSampaPhonemes       
-                    
 
-        return mapDict
+
+
+
+
+
+
+
 
 def tokenizePhonemes(phonemesSAMPA):
     '''
@@ -132,8 +98,9 @@ def parsePhonemes(lyricsTextGrid, syllableIdx):
     '''
     highLevel = tierAliases.pinyin # read syllable in pinyin
     syllable, dummy = readNonEmptyTokensTextGrid(lyricsTextGrid, highLevel, syllableIdx, syllableIdx)
+
     
-    lowLevel = tierAliases.details # read phonemesAnno
+    lowLevel = tierAliases.xsampadetails # read phonemesAnno
     dummy, phonemesListNoPauses = readNonEmptyTokensTextGrid(lyricsTextGrid, lowLevel, 0, -1)
     
     beginSyllableTs = syllable[0][0]
@@ -153,7 +120,11 @@ def parsePhonemes(lyricsTextGrid, syllableIdx):
 
 
 def removeDuplicatePhonemes(phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx):
+    '''
     
+    input in tier details : x x x o o u -> 
+    output: x o u (with corresponding timestamps at begining and end) 
+    '''
     ################### find index where a new phoneme appears
     indicesStateStarts = [] # indices of change of phoneme text
     
@@ -170,59 +141,151 @@ def removeDuplicatePhonemes(phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx):
     for i in range(len(indicesStateStarts) - 1):
         idx = indicesStateStarts[i]
         idxLast = indicesStateStarts[i + 1] - 1
-        phonemeText = phonemesListNoPauses[idx][2]
-        beginTs = phonemesListNoPauses[idx][0]
-        endTs = phonemesListNoPauses[idxLast][1]
+        
+        currPhn = Phoneme(phonemesListNoPauses[idx][2])  
+        
+        currPhn.setBeginTs(phonemesListNoPauses[idx][0])
+        currPhn.setEndTs(phonemesListNoPauses[idxLast][1])
        
-        phonemesAnno.append((phonemeText, beginTs, endTs))
+        phonemesAnno.append(currPhn)
     
     # add last phoneme
     lastTokenIdx = indicesStateStarts[-1]
-    phonemeText = phonemesListNoPauses[lastTokenIdx][2]
-    beginTs = phonemesListNoPauses[lastTokenIdx][0]
-    endTs = phonemesListNoPauses[toPhonemeIdx][1]
     
-    phonemesAnno.append((phonemeText, beginTs, endTs))
+    lastPhn = Phoneme(phonemesListNoPauses[lastTokenIdx][2]) 
+    
+    lastPhn.setBeginTs(phonemesListNoPauses[lastTokenIdx][0])
+    lastPhn.setEndTs(phonemesListNoPauses[toPhonemeIdx][1])
+    
+    phonemesAnno.append(lastPhn)
     
     return phonemesAnno
 
+
+def hasDuplicatedSyllables(phonemesAnno, phonemesDictSAMPA):
+    
+    '''
+    x o x o -> x o
+    '''
+    phonemesAnnoStr = ''        
+    for phoneme in phonemesAnno:
+        phonemesAnnoStr += phoneme.ID
+        
+    phonemesDictSAMPAString = ''.join(phonemesDictSAMPA)
+    phonemesDictSAMPAString += phonemesDictSAMPAString # concatenate twice string
+    
+    isDuplicated = 0
+    if phonemesAnnoStr == phonemesDictSAMPAString:
+        isDuplicated = 1
+    return  isDuplicated
+
+
+
+
+def loadPhonemesFromTextGridOracle(lyricsTextGrid, fromSyllableIdx, toSyllableIdx):
+    '''
+    load phonemes in XSAMPAdetails tier from TextGrid. load all Syllables in range 
+    '''
+    dictSyll2XSAMPA = createDictSyll2XSAMPA()
+    phonemesAnnoAll = []
+    
+    for syllableIdx in range(fromSyllableIdx,toSyllableIdx+1):
+            phonemesAnno = loadPhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA)
+            phonemesAnnoAll.extend(phonemesAnno)
+
+    return phonemesAnnoAll       
+
+
+
+def loadPhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA):
+    '''
+    load phonemes in XSAMPA from TextGrid. aggregate them if repeated 
+    '''
+    phonemesAnno, phonemesDictSAMPAQueue, phonemesDictSAMPA, syllableText = loadPhonemesInAnnoAndDict(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA)
+    if syllableText == '': #  empty syll
+        return phonemesAnno
+        
+    # duplicate phoneme sequences, hack: take first repetition only
+    # split 2 phonemes from annotaion into equally sized. TODO: use rules. TODO: for 2 phonemes
+
+    phonemesAnno = splitDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPAQueue)
+   
+  
+    return phonemesAnno
+    
+    
+
+
+
+
+
+
 def validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA):
    
-    phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx, syllableText = parsePhonemes(lyricsTextGrid, syllableIdx)
-    if syllableText == '':
-       return 
-    
-    # details tier has same phoneme repeating
-    phonemesAnno = removeDuplicatePhonemes(phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx)
-    
-    if syllableText in dictSyll2XSAMPA:
-        phonemesDictSAMPA = dictSyll2XSAMPA[syllableText]
-    else:
-        sys.exit(" syllable  {} not in dict".format(syllableText))
-        
-    phonemesDictSAMPAQueue = tokenizePhonemes(phonemesDictSAMPA)
+    phonemesAnno, phonemesDictSAMPAQueue, phonemesDictSAMPA, syllableText = loadPhonemesInAnnoAndDict(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA)
+    if syllableText == '': # nothing to validate. empty syll
+        return
     
     
     ### CHECK if phonemes from annotation correspond to dictionary:
     if len(phonemesAnno) > len(phonemesDictSAMPAQueue):
-#         sys.exit(" syllables in annotaion are {} and they shoud be {}".format(phonemesAnno, phonemesDictSAMPAQueue))
-#         print " syllables in annotaion are {} and they shoud be {}".format(phonemesAnno, phonemesDictSAMPAQueue)
-        pass
+        if hasDuplicatedSyllables(phonemesAnno, phonemesDictSAMPA):
+            logger.debug(" syllables in annotaion  {} is duplicated".format(phonemesAnno, phonemesDictSAMPAQueue))
+        else:
+            logger.warning(" More phonemes annotated for syllable {}. Phonemes in annotaion are {} and they shoud be {}".format(syllableText, phonemesAnno, phonemesDictSAMPAQueue))
+          
+        
                 
     elif len(phonemesAnno) < len(phonemesDictSAMPAQueue):
+#         logger.warning(" Less phonemes annotated")
+#          syllables in annotaion are {} and they shoud be {}".format(phonemesAnno, phonemesDictSAMPAQueue))
+
+        phonemesAnnoStr = "".join(map(str,phonemesAnno))
+        phonemesDictSAMPAQueueStr = "".join(phonemesDictSAMPAQueue)
+        if phonemesAnnoStr != phonemesDictSAMPAQueueStr:
+            logger.warning("At  syllable {}. Phonemes in annotaion are {} and they shoud be {}".format(syllableText, phonemesAnno, phonemesDictSAMPAQueue))
+
+        
         for currPhoneme in phonemesAnno:
             dictPhoneme = phonemesDictSAMPAQueue.popleft()
             
-            if not currPhoneme[0] == dictPhoneme:
+            if not currPhoneme.ID == dictPhoneme:
                 # divide into two
-#                 print "in annotation says {} but expected {} from dict".format(currPhoneme[0], dictPhoneme) # todo: put the two new back in queue
-                  pass
+                logger.info("in annotation says {} but expected {} from dict".format(currPhoneme.ID, dictPhoneme)) # todo: put the two new back in queue
+#                 pass
               
         # missing phoneme
         while not len(phonemesDictSAMPAQueue) == 0:
             phoneme = phonemesDictSAMPAQueue.popleft()
-#             print "in annotation phoneme {} is missing".format(phoneme)
+            logger.info( "in annotation phoneme {} is missing".format(phoneme))
     
     else: # syllables have same len
           pass  
 #         print " all good: \n syllables in annotaion are {} and in dict : {}".format(phonemesAnno, phonemesDictSAMPAQueue)
+
+
+def loadPhonemesInAnnoAndDict(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA):
+    '''
+    load list of phonemes from annotation TextGrid, sieve out duplicate  phonemes 
+    return queue 
+    '''
+    phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx, syllableText = parsePhonemes(lyricsTextGrid, syllableIdx)
+    
+    if syllableText == '': # skip empty syllables
+        phonemesDictSAMPAQueue = None
+        phonemesDictSAMPA = []
+        phonemesAnno = []
+        return phonemesAnno, phonemesDictSAMPAQueue, phonemesDictSAMPA, syllableText
+    
+# details tier has same phoneme duplicated
+    phonemesAnno = removeDuplicatePhonemes(phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx)
+    if syllableText in dictSyll2XSAMPA:
+        phonemesDictSAMPA = dictSyll2XSAMPA[syllableText]
+    else:
+        logger.warning(" syllable  {} not in dict".format(syllableText))
+        consonants, consonants2, vocals, specials = loadXSAMPAPhonetizers()
+        phonemesDictSAMPA = toXSAMPAPhonemes(syllableText, consonants, consonants2, vocals, specials)
+        dictSyll2XSAMPA[syllableText] = phonemesDictSAMPA # add syllable to dict
+    phonemesDictSAMPAQueue = tokenizePhonemes(phonemesDictSAMPA)
+    
+    return phonemesAnno, phonemesDictSAMPAQueue, phonemesDictSAMPA, syllableText
