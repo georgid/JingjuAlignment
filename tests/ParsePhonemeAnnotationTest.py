@@ -7,7 +7,6 @@ Created on Oct 1, 2015
 '''
 import os
 import sys
-from PhonetizerDict import tokenizePhonemes
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
@@ -15,10 +14,14 @@ if parentDir not in sys.path:
     sys.path.append(parentDir)
 
 dirUtilsLyrics = parentDir + 'utilsLyrics'
-if parentDir + 'utilsLyrics' not in sys.path:
+if dirUtilsLyrics not in sys.path:
     sys.path.append(dirUtilsLyrics)
+
+AlignmentDurURI = parentDir + 'AlignmentDuration'
+if AlignmentDurURI not in sys.path:
+    sys.path.append(AlignmentDurURI)    
     
-    
+from PhonetizerDict import tokenizePhonemes
 from ParsePhonemeAnnotation import     validatePhonemesOneSyll,  validatePhonemesWholeAria
 
 
@@ -35,18 +38,19 @@ def validatePhonemesOneSyllTest():
     validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA)
     
     
-def validatePhonemesWholeAriaTest(argv):
-    
+def validatePhonemesWholeAriaTest():
 
     
     
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/wangjiangting_dushoukong'
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/shiwenhui_tingxiongyan'
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
     
     
-#     validatePhonemesWholeAria(lyricsTextGrid)
+    validatePhonemesWholeAria(lyricsTextGrid)
     
 
+def vaidatePhonemesAllArias():
 ##### automatic dir parsing:    
     path = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/'
     from Utilz import findFilesByExtension
@@ -89,8 +93,9 @@ def  createDictSyll2XSAMPATest():
     
 if __name__ == '__main__':
     
-        
-    validatePhonemesWholeAriaTest(sys.argv)
+    vaidatePhonemesAllArias()        
+#     validatePhonemesWholeAriaTest()
+
   
 #     validatePhonemesOneSyllTest() 
 #     createDictSyll2XSAMPATest()

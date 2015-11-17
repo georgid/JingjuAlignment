@@ -56,8 +56,7 @@ class SyllableJingju(_SyllableBase):
 
         def expandToPhonemes(self):
             '''
-            one-to-one function: PINYIN characters to turkish METU. 
-            as intermediate step mandarin phoneset are used.   
+            expand PINYIN characters to XAMPA phonemes. 
             '''
             
             ######################
@@ -68,9 +67,11 @@ class SyllableJingju(_SyllableBase):
             self.phonemes = []    
 
             #  notes for instrument
-            if self.text == 'REST':
+            if self.text == 'REST' or self.text == '':
                 # TODO: replace with other model instead of silence
-                self.phonemes.append(Phoneme('sil'))
+                silPhoneme = Phoneme('sil')
+#                 silPhoneme.durationInNumFrames = 100
+                self.phonemes.append(silPhoneme)
                 # TODO: does sp at end of sp make sence? 
 #                 self.phonemes.append(Phoneme('sp'))
                 self.hasShortPauseAtEnd = False
@@ -80,8 +81,8 @@ class SyllableJingju(_SyllableBase):
             
             if self.text in Phonetizer.phoneticDict:
                 xsampaPhonemesGrouped = Phonetizer.phoneticDict[self.text]
-            else:
-                logger.warning(" syllable  {} not in dict".format(self.text))
+            else: # add pinyin syllalble to phonetic dict
+                logger.warning(" syllable in PINYIN {} not in dict".format(self.text))
                 consonants, consonants2, vocals, specials = loadXSAMPAPhonetizers()
                 xsampaPhonemesGrouped = toXSAMPAPhonemes(self.text, consonants, consonants2, vocals, specials)
                 
@@ -117,7 +118,7 @@ class SyllableJingju(_SyllableBase):
             
             # Workaraound: reduce consonant durationInMinUnit for syllables with very short note value. 
             while (self.getNumPhonemes() - 1) * consonant_duration >= self.durationInNumFrames:
-                logger.warn("Syllable {} has very short durationInMinUnit: {} . reducing the fixed durationInMinUnit of consonants".format(self.text, self.durationInMinUnit) )
+                logger.warning("Syllable {} has very short durationInMinUnit: {} . reducing the fixed durationInMinUnit of consonants".format(self.text, self.durationInMinUnit) )
                 consonant_duration /=2
             
             #################

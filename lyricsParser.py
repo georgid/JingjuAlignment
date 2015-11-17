@@ -2,6 +2,7 @@
 '''
 Created on Mar 5, 2015
 collection of metods for parsing textGrid and lyrics
+Lyrics are parsed from textGrid
 
 @author: joro
 '''
@@ -16,7 +17,8 @@ from collections import deque
 
 from PhonetizerDict import createDictSyll2XSAMPA
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
+
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
@@ -116,12 +118,12 @@ def divideIntoSentencesFromAnno(annotationURI):
     return listSentences
 
 
-def splitDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPAQueue):
+def mergeDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPA):
     phonemesMerged = []
 
     # make queue from phoneme anno
     phonemesAnnoQueue = deque(phonemesAnno)
-    
+    phonemesDictSAMPAQueue = deque(phonemesDictSAMPA)
     
     while len(phonemesDictSAMPAQueue) != 0:
         
@@ -132,8 +134,8 @@ def splitDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPAQueue):
                 break
             currPhoneme = phonemesAnnoQueue.popleft()
             
-            if not currPhoneme.ID == dictPhoneme:
-                 logger.warning("in annotation says {} but expected {} from dict".format(currPhoneme.ID, dictPhoneme)) # todo: put the two new back in queue
+            if not currPhoneme.ID == dictPhoneme.ID:
+                 logger.debug("in annotation says {} but expected {} from dict".format(currPhoneme.ID, dictPhoneme.ID)) # todo: put the two new back in queue
                  
                  # split
                  splitPhoneme1, splitPhoneme2 = splitThePhoneme(currPhoneme, dictPhoneme)
@@ -147,8 +149,9 @@ def splitDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPAQueue):
     return phonemesMerged
 
 
-def splitThePhoneme(doublePhoneme, firstPhoenemeTxt):
-    idx = doublePhoneme.ID.find(firstPhoenemeTxt)
+def splitThePhoneme(doublePhoneme, firstPhoeneme):
+    firstPhoenemeTxt = firstPhoeneme.ID
+    idx = doublePhoneme.ID.find(firstPhoenemeTxt) # find substring
     secondPhonemeTxt = doublePhoneme.ID[idx + len(firstPhoenemeTxt):]
     
     splitPhoneme1 = Phoneme(firstPhoenemeTxt)
@@ -192,13 +195,24 @@ def divideIntoSentencesFromAnnoWithSil(annotationURI):
     return listSentences
 
 
+
+def createSyllable(currSentenceSyllables, syllableText):
+    isEndOfSentence, syllableTxt = stripPunctuationSigns(syllableText)
+    if syllableTxt == '':
+        syllableTxt = 'REST'
+    currSyllable = SyllableJingju(syllableTxt, -1)
+    currSyllable.setDurationInMinUnit(1)
+    
+    currSentenceSyllables.append(currSyllable)
+    return currSentenceSyllables
+
 def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBeginTs, highLevelEndTs, highLevel):
     ''' 
     find indices of lower level tier whihc align with indices of highLevel tier
     @return: fromLowLevelTokenIdx, toLowLevelTokenIdx
     @param lowerLevelTokenPointer: being updated, and returned 
     '''
-    currSentenceSyllables = []
+    currSentenceSyllablesLIst = []
     
     
     while lowLevelTokensList[lowerLevelTokenPointer][0] < highLevelBeginTs: # search for beginning
@@ -211,12 +225,8 @@ def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBe
     while lowerLevelTokenPointer < len(lowLevelTokensList) and float(lowLevelTokensList[lowerLevelTokenPointer][1]) <= highLevelEndTs: # syllables in currSentence
         
         if highLevel == tierAliases.line:
-            isEndOfSentence, syllableTxt = stripPunctuationSigns(lowLevelTokensList[lowerLevelTokenPointer][2])
-            if syllableTxt == '':
-                syllableTxt = 'REST'
-            currSyllable = SyllableJingju(syllableTxt, -1)
-            currSyllable.setDurationInMinUnit(1)
-            currSentenceSyllables.append(currSyllable)
+            syllableText = lowLevelTokensList[lowerLevelTokenPointer][2]
+            createSyllable(currSentenceSyllablesLIst, syllableText)
         
         lowerLevelTokenPointer += 1
     
@@ -224,90 +234,22 @@ def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBe
     if not currTokenEnd == highLevelEndTs: # end Ts has to be aligned
         logger.warning(" token of lower layer has ending time {}, but expected {} from higher layer ".format(currTokenEnd, highLevelEndTs))
     toLowLevelTokenIdx = lowerLevelTokenPointer - 1
-    return  fromLowLevelTokenIdx, toLowLevelTokenIdx, lowerLevelTokenPointer, currSentenceSyllables
+    return  fromLowLevelTokenIdx, toLowLevelTokenIdx, lowerLevelTokenPointer, currSentenceSyllablesLIst
 
 
 
-def loadPhonemesFromTextGrid(annotationURI, fromSyllIdx, toSyllIdx):
-    '''
-    infer section/line timestamps from annotation-textgrid, 
-    parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
-    '''
-    
-    
-    highLevel = tierAliases.pinyin # read syllables in pinyin 
-    syllablesList, dummy  =  readNonEmptyTokensTextGrid(annotationURI, highLevel, fromSyllIdx, toSyllIdx)
-    
-    beginSyllableTs = syllablesList[0][0]
-    endSyllableTs = syllablesList[-1][1]
-    
-    lowLevel = tierAliases.details
-    phonemesList, dummy  =  readNonEmptyTokensTextGrid(annotationURI, lowLevel, 0, -1)
-    
-    phonemesPointer = 0
-    
-    fromPhonemeIdx, toPhonemeIdx, dummy, dummy = \
-         _findBeginEndIndices(phonemesList, phonemesPointer, beginSyllableTs, endSyllableTs, highLevel )
-    
-    return phonemesList[fromPhonemeIdx:toPhonemeIdx+1]
-
-
-
-def divideIntoSentencesFromAnnoOld(annotationURI):
-        '''
-        infer section/line timestamps from annotation-textgrid, 
-        use punctuation as marker for sentence ends
-        @deprecated
-        '''
-#         whichLevel = 5 # line
-        whichLevel = 3 # pinyin
-        annotationTokenList, annotationTokenListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
-
-        
-        currSectionSyllables =  []
-        listSentences = []  
-        
-        i = 0
-        currSectionStartTime = annotationTokenListNoPauses[i][0]
-        fromSyllable = annotationTokenListNoPauses[i][3]
-        
-        for i in range(len(annotationTokenListNoPauses)):
-            
-            token = annotationTokenListNoPauses[i]
-            isEndOfSentence, token[2] = stripPunctuationSigns(token[2])
-            if isEndOfSentence:
-                currSyllable = SyllableJingju(token[2], -1)
-                currSyllable.setDurationInMinUnit(1)
-                currSectionSyllables.append(currSyllable)
-                
-                currSectionEndTime = token[1]
-                toSyllable = token[3]
-                listSentences.append(( currSectionStartTime, currSectionEndTime, fromSyllable, toSyllable, currSectionSyllables))
-                
-                # start next section
-                currSectionSyllables =  []
-                if i != len(annotationTokenListNoPauses)-1:
-                    currSectionStartTime = annotationTokenListNoPauses[i+1][0]
-                    fromSyllable = annotationTokenListNoPauses[i+1][3]
-                
-            else: # syllable not at end of sentence
-                currSyllable = SyllableJingju(token[2], -1)
-                currSyllable.setDurationInMinUnit(1)
-                currSectionSyllables.append(currSyllable)
-        return listSentences
-    
     
 
 
 
-def syllables2Lyrics(syllables):
+def syllables2Lyrics(syllablesAsText):
         '''
         input: sylables as text
         creates objects of class Lyrics consisting of objects of class Syllable 
         '''
         
         listWords = []
-        for syllable in syllables:
+        for syllable in syllablesAsText:
             # word of only one syllable
             word, dummy = createWord([], syllable)
             listWords.append(word)
@@ -338,7 +280,9 @@ def stripPunctuationSigns(string_):
                 string_  = string_.replace('！', '')
                 string_  = string_.replace('：', '')
                 string_  = string_.replace(':', '')
+                                
                 isEndOfSentence = True
+    string_ = string_.strip()
     return isEndOfSentence, string_
 
 def serializeLyrics(lyrics, outputFileNoExt):

@@ -8,6 +8,7 @@ shi	c1
 ri	r\'1
 yu	jy
 ye	jE
+yan	jEn
 yun	jyn
 yue	jH9
 yuan	jHEn

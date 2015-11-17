@@ -5,8 +5,8 @@ Created on Oct 13, 2014
 '''
 import sys
 import os
-from lyricsParser import loadPhonemesFromTextGrid, syllables2Lyrics
-from ParsePhonemeAnnotation import loadPhonemesFromTextGridOracle
+from lyricsParser import syllables2Lyrics
+from ParsePhonemeAnnotation import loadPhonemesAnnoOneSyll
 
 
 
@@ -51,7 +51,7 @@ from doitOneChunk import alignOneChunk
 
 
 pathHMM = os.path.join(parentDir, 'HMMDuration')
-from hmm.examples.main  import loadSmallAudioFragment,  parsePhoenemeAnnoDursOracle
+from hmm.examples.main  import loadSmallAudioFragment,  loadSmallAudioFragmentOracle
 
 from Utilz import readListOfListTextFile
 
@@ -87,14 +87,14 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     toSyllableIdx = currSentence[3]
     
    
-    ###### 1) load Lyrics
+    ###### 1) create Lyrics
     syllables = currSentence[4]
     lyrics = syllables2Lyrics(syllables)
     
     if withDurations: # load from score instead
         lyrics = musicXMLParser.getLyricsForSection(whichSentence) # indexing in python
 
-    withSynthesis = True
+    withSynthesis = False
 
     ##### align
     usePersistentFiles = 'False'
@@ -103,18 +103,21 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     ONLY_MIDDLE_STATE = False
     params  = Parameters(alpha, ONLY_MIDDLE_STATE)
     
-    lyricsWithModelsORacle = 'dummy'
+    phonemesAnnoAll = 'dummy'
     
     if withOracle:
-        # get start and end phoneme idx from TextGrid
-        phonemeListExtracted = loadPhonemesFromTextGrid(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
-        phonemeListExtracted = loadPhonemesFromTextGridOracle(URIrecordingNoExt + ANNOTATION_EXT, fromSyllableIdx, toSyllableIdx)
         
-        # TODO: compare format of phonemeListExtracted
-        lyricsWithModelsORacle = parsePhoenemeAnnoDursOracle(lyrics, phonemeListExtracted )
-     
+        # get start and end phoneme indices from TextGrid
+        phonemesAnnoAll = []
+        for idx, syllableIdx in enumerate(range(fromSyllableIdx,toSyllableIdx+1)): # for each  syllable including silent syllables
+            # go through the phonemes. load all 
+            currSyllable = lyrics.listWords[idx].syllables[0]
+            phonemesAnno, syllableTxt = loadPhonemesAnnoOneSyll(URIrecordingNoExt + ANNOTATION_EXT, syllableIdx, currSyllable)
+            phonemesAnnoAll.extend(phonemesAnno)
         
-    detectedTokenList, detectedPath = alignOneChunk( lyrics, withSynthesis, withOracle, lyricsWithModelsORacle, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, fromTs, toTs, URIrecordingNoExt)
+    
+        
+    detectedTokenList, detectedPath = alignOneChunk( lyrics, withSynthesis, withOracle, phonemesAnnoAll, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, fromTs, toTs, URIrecordingNoExt)
     
 
     correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, fromSyllableIdx, toSyllableIdx  )

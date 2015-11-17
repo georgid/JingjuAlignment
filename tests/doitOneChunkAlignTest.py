@@ -8,13 +8,13 @@ Created on Sep 23, 2015
 '''
 from doitOneChunkAlign import doitOneChunkAlign
 import os
-from lyricsParser import divideIntoSentencesFromAnno,\
+from lyricsParser import \
     divideIntoSentencesFromAnnoWithSil
 from MusicXmlParser import MusicXMLParser
 
 def readPinYinTest():
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/ariasAnnotated/2-16_伴奏：听兄言不由我花容惊变.TextGrid'
-    allSentences = divideIntoSentencesFromAnno(URIrecordingNoExt)
+    allSentences = divideIntoSentencesFromAnnoWithSil(URIrecordingNoExt)
     print allSentences
     
 
@@ -29,11 +29,11 @@ def doitOneChunkTest():
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/xixiangji_biyuntian'
 
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/wangjiangting_dushoukong'
+    
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/shiwenhui_tingxiongyan'
  
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
-    
-       
-   
+
     whichSentence = 1
 
     ###########################################################
@@ -50,7 +50,7 @@ def doitOneChunkTest():
     withVocalPrediction = 0
     
     withOracle = 1
-    currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, sentence, withOracle, withDurations, withVocalPrediction)  
+    currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, sentence, withOracle, withDurations, withVocalPrediction)  
  
     currAcc = currCorrectDuration / currTotalDuration
     print "sentence {}: acc ={:.2f}".format(whichSentence, currAcc)

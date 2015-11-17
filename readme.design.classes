@@ -4,7 +4,7 @@ Phonetizer can be used as it is for all languages. It is needed to give the righ
 ParsePhonemeAnnotation:
 functions to load phoneme annotations from xsampadetails tier
 
-loadPhonemesFromTextGridOracle()
+loadPhonemesOneSyll
 	used in oracle to load phonemes.
 	To decode with oracle phonemes durations still phoneme models should be used. 
 	This is so because we use code from LyricsWithModels as utility to expand models to their states. 
@@ -17,6 +17,11 @@ PhonetizerDict
 createDictSyll2XSAMPA()
 	create phonetic dictionary pinyin Syllables -> phonemes in XSAMPA 
 
+
+
+lyricsParser.syllables2Lyrics()
+	creates syllable classes out of syllables as text as being read from TextGrid 
+	
 
 SyllableJingju:
 rule-based assignment of durations using Initial-Middle-final rules
