@@ -174,6 +174,44 @@ IMPL: state are assigned 1-s in:
 hmm.continuous._ContinuousHMM._ContinuousHMM._mapBOracle
 \end_layout
 
+\begin_layout Plain Layout
+========
+\end_layout
+
+\begin_layout Plain Layout
+branch xsampa: runWithParameters 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+without score: equal duration with Turkish model
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+X_SAMPA or METUBET shitched in lyricsParser.syllables2Lyrics
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+IMPL: branch refactoring LyricsWithHTKModels() 
+\end_layout
+
 \end_inset
 
 
@@ -204,23 +242,6 @@ parameters:
 
 \begin_layout Standard
 - resynthesis threshold = 70 db 
-\end_layout
-
-\begin_layout Subsection
-without score: equal duration with Turkish model
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Comment
-status open
-
-\begin_layout Plain Layout
-X_SAMPA or METUBET shitched in lyricsParser.syllables2Lyrics
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection

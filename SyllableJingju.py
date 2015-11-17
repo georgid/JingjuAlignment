@@ -71,6 +71,7 @@ class SyllableJingju(_SyllableBase):
             one-to-one function: PINYIN characters to turkish METU. 
             as intermediate step mandarin phoneset are used.   
             '''
+            self.text = self.text.strip()
             
             ######################
             ### pinyin to mandarin phonemeSet

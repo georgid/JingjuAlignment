@@ -17,21 +17,19 @@ from lyricsParser import divideIntoSentencesFromAnno
 
 def runWithParameters(argv):
     
-    if len(argv) != 6:
+    if len(argv) != 5:
             print ("Tool to get alignment accuracy of of one jingju aria with different parameters ")
-            print ("usage: {}   <pathToRecordings> <withScores> <deviation_INSeconds> <recordingName_noExtension> <withVocalPrediciton> ".format(argv[0]) )
+            print ("usage: {}   <URIRecording> <withScores> <deviation_INSeconds> <withVocalPrediciton> ".format(argv[0]) )
             sys.exit()
     
-    rootURI = argv[1]
-#     rootURI = '/Users/joro/Documents/Phd/UPF/arias/'
+    URIrecordingNoExt =  argv[1]
+    lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
     
 #     URIrecordingNoExt =  rootURI + 'laosheng-erhuang_04'
 #     URIrecordingNoExt =  rootURI + 'laosheng-xipi_02'
 #     URIrecordingNoExt =  rootURI + 'dan-xipi_01'
 #     URIrecordingNoExt =  rootURI + 'dan-xipi_02'
 
-    URIrecordingNoExt = rootURI + argv[4]
-    lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
 
     # load total # different sentences + their rspective ts
 #         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
@@ -49,7 +47,7 @@ def runWithParameters(argv):
     totalDuration = 0
     accuracyList = []
     
-    withVocalPrediction = int(argv[5])
+    withVocalPrediction = int(argv[4])
     withOracle = 0
 #     for whichSentence, currSentence in  reversed(list(enumerate(listSentences))):
     for whichSentence, currSentence in  enumerate(listSentences):
