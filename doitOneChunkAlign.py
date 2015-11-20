@@ -42,7 +42,6 @@ from Phonetizer import Phonetizer
 from SymbTrParser import createWord
 
 from Lyrics import Lyrics
-from LyricsWithModels import LyricsWithModels
     
 from WordLevelEvaluator import readNonEmptyTokensTextGrid
 from AccuracyEvaluator import _evalAccuracy
@@ -51,7 +50,7 @@ from doitOneChunk import alignOneChunk
 
 
 pathHMM = os.path.join(parentDir, 'HMMDuration')
-from hmm.examples.main  import loadSmallAudioFragment,  loadSmallAudioFragmentOracle
+from hmm.examples.main  import   loadSmallAudioFragmentOracle
 
 from Utilz import readListOfListTextFile
 

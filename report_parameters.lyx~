@@ -83,6 +83,21 @@ System Overview:
 \begin_layout Standard
 manual segmentation according to lyrics lines/sentences from script of aria
  
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+Lyrics are read from TextGrid annotaion layer 'lines' IMPL: lyricsParser.divideIn
+toSectionsFromAnno
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then alignment on each lyrics-line on syllable level
 \end_layout
 
 \begin_layout Section
@@ -145,7 +160,29 @@ done by setting parameter withOracle in doitOneChunkAlign.doitOneChunkAlign
 \begin_layout Standard
 For each state for a phoneme, for the frames of its duration assign 1 in
  B_map.
- So B_map is zero for all other phonemes
+ So B_map is zero for all other phonemes.
+ 
+\end_layout
+
+\begin_layout Standard
+Optimize parameters: 
+\end_layout
+
+\begin_layout Standard
+-consonant_duration = 0.3, 
+\end_layout
+
+\begin_layout Standard
+- deviationINSec = 0.07 ( TODO: vowel gets longer deviationInSec.
+ Try first reading syllable durs from textGrid and ) 
+\end_layout
+
+\begin_layout Standard
+- resynthesis threshold = 70 db
+\end_layout
+
+\begin_layout Standard
+- weighting factor alpha = 0.97
 \end_layout
 
 \begin_layout Standard
@@ -180,69 +217,35 @@ hmm.continuous._ContinuousHMM._ContinuousHMM._mapBOracle
 \end_layout
 
 \begin_layout Subsection
-setting one: without score: each syllable gets equal duration with Chinese
- model 
+Equal duration with Turkish model 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+X_SAMPA or METUBET switched in lyricsParser.syllables2Lyrics
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+equal durations: each syllable gets equal duration with XSAMPA Chinese model
+ 
 \end_layout
 
 \begin_layout Standard
 Using the duration-explicit decoding, but each syllable within a sentence
- gets equal duration 
-\end_layout
-
-\begin_layout Standard
-parameters: 
-\end_layout
-
-\begin_layout Standard
--consonant_duration = 0.3, 
-\end_layout
-
-\begin_layout Standard
-- deviationINSec = 0.07 ( TODO: vowel gets longer deviationInSec.
- Try first reading syllable durs from textGrid and ) 
-\end_layout
-
-\begin_layout Standard
-- resynthesis threshold = 70 db 
+ gets equal duration.
+  
 \end_layout
 
 \begin_layout Subsection
-without score: equal duration with Turkish model
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Comment
-status open
-
-\begin_layout Plain Layout
-X_SAMPA or METUBET shitched in lyricsParser.syllables2Lyrics
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-setting two: each syllable gets duration from score
-\end_layout
-
-\begin_layout Standard
-Lyrics are read from TextGrid annotaion layer 'lyrics-syllables-pinyin.'
- Lyrics sentences are automatically derived by considering each punctuation
- sign after a syllable as an indicator of an end of a sentence (ideally
- from from score, for now from annotation).
- 
-\begin_inset Note Comment
-status open
-
-\begin_layout Plain Layout
-lyricsParser.divideIntoSectionsFromAnno
-\end_layout
-
-\end_inset
-
-
+durations from musicological rules
 \end_layout
 
 \begin_layout Subsection

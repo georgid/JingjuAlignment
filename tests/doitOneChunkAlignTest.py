@@ -49,7 +49,7 @@ def doitOneChunkTest():
         
     withVocalPrediction = 0
     
-    withOracle = 1
+    withOracle  = 0
     currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, sentence, withOracle, withDurations, withVocalPrediction)  
  
     currAcc = currCorrectDuration / currTotalDuration
