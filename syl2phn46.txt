@@ -23,7 +23,7 @@ bai	B   AI
 bao	B   AO
 beng	B   E   NG
 ben	B   E   NN
-be	B	E 
+be	B   E
 bei	B   EI
 bi	B   I
 bing	B   I   NG
@@ -98,6 +98,7 @@ feng	F   E   NG
 fen	F   E   NN
 fei	F   EI
 fo	F   O
+fong	F  O  NG
 fou	F   OU
 fu	F   U
 ga	G   A
