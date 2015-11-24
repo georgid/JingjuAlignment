@@ -52,6 +52,7 @@ from doitOneChunk import alignOneChunk
 
 pathHMM = os.path.join(parentDir, 'HMMDuration')
 from hmm.examples.main  import loadSmallAudioFragment,  loadSmallAudioFragmentOracle
+from hmm.ParametersAlgo import ParametersAlgo
 import hmm
 
 from Utilz import readListOfListTextFile
@@ -75,15 +76,17 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     if withVocalPrediction:
         listNonVocalFragments = getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs)
     
+    deviation = str(ParametersAlgo.DEVIATION_IN_SEC)
     
     if (withDurations):
-        tokenLevelAlignedSuffix = '.syllables_dur'
+        tokenLevelAlignedSuffix = '.syllables_dur_htk' 
     else:
         if withOracle:
             tokenLevelAlignedSuffix = '.syllables_oracle'
         else:
-            tokenLevelAlignedSuffix = '.syllables'
-
+            tokenLevelAlignedSuffix = '.syllables_htk'
+    
+    tokenLevelAlignedSuffix += '_' + deviation 
     fromSyllableIdx = currSentence[2]
     toSyllableIdx = currSentence[3]
     
