@@ -113,7 +113,7 @@ class SyllableJingju(_SyllableBase):
                 self.expandToPhonemes()
             
             if self.getNumPhonemes() == 0:
-                sys.exit("syllable with no phonemes!")
+                sys.exit("syllable {} with no phonemes!".format(self.text))
                 return
             
             

@@ -317,7 +317,9 @@ def syllables2Lyrics(syllables):
 #         Phonetizer.initLookupTable(True,  'XSAMPA2METUphonemeLookupTableSYNTH')
 
         # load phonetic dict 
-        Phonetizer.initPhoneticDict('syl2phn46.txt')
+        syll2PhonemeURI  = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), 'syl2phn46.txt')) 
+        
+        Phonetizer.initPhoneticDict(syll2PhonemeURI)
 #         Phonetizer.phoneticDict = createDictSyll2XSAMPA()  
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
     

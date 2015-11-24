@@ -83,7 +83,7 @@ def runWithParameters(argv):
     print "final: {:.2f}".format(correctDuration / totalDuration * 100)     
     import matplotlib.pyplot as plt
     plt.plot(accuracyList, 'ro')
-    plt.show()  
+#     plt.show()  
     
 if __name__ == '__main__':
 #     runWithParameters(sys.argv)
