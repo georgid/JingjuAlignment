@@ -107,7 +107,7 @@ class SyllableJingju(_SyllableBase):
             rule-based assignment of durations using Initial-Middle-final rules
             all consonant durations set to CONSONANT_DURATION 
                         '''
-            cofficinetTempo = 1
+            coefficinetTempo = 1
             
             if self.phonemes is None:
                 self.expandToPhonemes()
