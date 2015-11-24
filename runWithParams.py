@@ -12,8 +12,25 @@ from hmm.ParametersAlgo import ParametersAlgo
 from doitOneChunkAlign import doitOneChunkAlign
 from lyricsParser import divideIntoSentencesFromAnno,\
     divideIntoSentencesFromAnnoWithSil
+import os
 
 
+def runWithParametersAll(argv):
+    
+    if len(argv) != 4:
+            print ("Tool to get alignment accuracy of of one jingju aria with different parameters ")
+            print ("usage: {}    <withScores> <deviation_INSeconds> <withVocalPrediciton> ".format(argv[0]) )
+            sys.exit()
+            
+    path = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/'
+    from Utilz import findFilesByExtension
+    
+    URiREcordings = findFilesByExtension(path, 'wav')
+    for URiREcording in URiREcordings:
+        URiREcording = os.path.splitext(URiREcording)[0] 
+        print "working on " + URiREcording
+        runWithParameters( ["dummy", URiREcording,  argv[2] ] )
+        
 
 
 def runWithParameters(argv):
@@ -66,7 +83,9 @@ def runWithParameters(argv):
     plt.show()  
     
 if __name__ == '__main__':
-    runWithParameters(sys.argv)
+#     runWithParameters(sys.argv)
+    runWithParametersAll(sys.argv)
+
 
 #     example: 
 # python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_01 0

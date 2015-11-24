@@ -51,6 +51,8 @@ from doitOneChunk import alignOneChunk
 
 pathHMM = os.path.join(parentDir, 'HMMDuration')
 from hmm.examples.main  import   loadSmallAudioFragmentOracle
+from hmm.ParametersAlgo import ParametersAlgo
+
 
 from Utilz import readListOfListTextFile
 
@@ -73,15 +75,18 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     if withVocalPrediction:
         listNonVocalFragments = getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs)
     
-    
+    deviation = str(ParametersAlgo.DEVIATION_IN_SEC)
+
     if (withDurations):
-        tokenLevelAlignedSuffix = '.syllables_dur'
+        tokenLevelAlignedSuffix = '.syllables_dur_gmm'
     else:
         if withOracle:
             tokenLevelAlignedSuffix = '.syllables_oracle'
         else:
             tokenLevelAlignedSuffix = '.syllables'
-
+    
+    tokenLevelAlignedSuffix += '_' + deviation 
+            
     fromSyllableIdx = currSentence[2]
     toSyllableIdx = currSentence[3]
     
@@ -101,11 +106,12 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     from hmm.Parameters import Parameters
     ONLY_MIDDLE_STATE = False
     params  = Parameters(alpha, ONLY_MIDDLE_STATE)
-    
+
+     
     phonemesAnnoAll = 'dummy'
-    
+     
     if withOracle:
-        
+         
         # get start and end phoneme indices from TextGrid
         phonemesAnnoAll = []
         for idx, syllableIdx in enumerate(range(fromSyllableIdx,toSyllableIdx+1)): # for each  syllable including silent syllables
@@ -113,11 +119,16 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
             currSyllable = lyrics.listWords[idx].syllables[0]
             phonemesAnno, syllableTxt = loadPhonemesAnnoOneSyll(URIrecordingNoExt + ANNOTATION_EXT, syllableIdx, currSyllable)
             phonemesAnnoAll.extend(phonemesAnno)
-        
-    
-        
+         
+#       # TODO: compare format of phonemeListExtracted
+#         lyricsWithModelsORacle = hmm.examples.main.loadSmallAudioFragmentOracle(lyrics, phonemeListExtracted )
+#          
     detectedTokenList, detectedPath = alignOneChunk( lyrics, withSynthesis, withOracle, phonemesAnnoAll, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, fromTs, toTs, URIrecordingNoExt)
-    
+     
+
+
+   
+
 
     correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, fromSyllableIdx, toSyllableIdx  )
     acc = correctDuration / totalDuration
