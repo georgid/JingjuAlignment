@@ -249,6 +249,28 @@ Using the duration-explicit decoding, but each syllable within a sentence
  
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+if phoneme is not present in model, approximate by copying the model for
+ a closely sounding phoneme.
+\end_layout
+
+\begin_layout Plain Layout
+U^ -> copy u
+\end_layout
+
+\begin_layout Plain Layout
+@ -> copy e
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 durations from musicological rules
 \end_layout

@@ -141,7 +141,12 @@ Setting zero: oracle durations
 \end_layout
 
 \begin_layout Standard
-Oracle durations ..
+The idea is that results should be close to accuracy 100 % because we use
+ the phoneme timestamps as if they were the observation probabilities.
+ e.g.
+ I set probabilities of the corresponding phoneme to 1 in the right interval
+ and zero for all other phonemes.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -241,7 +246,7 @@ equal durations: each syllable gets equal duration with XSAMPA Chinese model
 \begin_layout Standard
 Using the duration-explicit decoding, but each syllable within a sentence
  gets equal duration.
-  
+ 
 \end_layout
 
 \begin_layout Subsection

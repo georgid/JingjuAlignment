@@ -62,7 +62,7 @@ def runWithParameters(argv):
     accuracyList = []
     
     withVocalPrediction = 0
-    withOracle = 1
+    withOracle = 0
 #     for whichSentence, currSentence in  reversed(list(enumerate(listSentences))):
     for whichSentence, currSentence in  enumerate(listSentences):
         currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction)  
