@@ -16,6 +16,8 @@ from collections import deque
 
 
 from PhonetizerDict import createDictSyll2XSAMPA
+from IPython.core.tests.test_formatters import numpy
+from SentenceJingju import SentenceJingju
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -51,71 +53,11 @@ from WordLevelEvaluator import tierAliases
 
     
             
-def createSyllables(annotationURI, fromSyllable, toSyllable):
-    '''
-    @param refSyllableDuration: its value does not matter. important is that all syllables are assigned same relative duration.
-    
-    create Syllables, assign their durations in refSyllableDuration
-    
-    @return: lyrics - created lyrics oboject
-    '''
-    listSyllables = []
-    
-    annotationTokenList, annotationTokenListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, 3, fromSyllable, toSyllable)
-    
-    
-    for tsAndSyll in annotationTokenListNoPauses:
-        currSyllable = SyllableJingju(tsAndSyll[2], -1)
-        currSyllable.setDurationInMinUnit(1)
-        listSyllables.append(currSyllable)
-    
-    
-    
-    
-    return listSyllables
 
-def divideIntoSentencesFromAnno(annotationURI):
-    '''
-    infer section/line timestamps from annotation-textgrid, 
-    parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
-    #deprecated, use *WithSil instead
-    '''
-    
-    whichLevel = tierAliases.line # read lines (sentences) tier
-    annotationTokenList, annotationLinesListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
-    
-    whichLevel = tierAliases.pinyin # read syllables in pinyin 
-    syllablesList = TextGrid2WordList(annotationURI, whichLevel)
-    annotationTokenList, syllablesList =  readNonEmptyTokensTextGrid(annotationURI, whichLevel, 0, -1)
 
-    syllablePointer = 0
-    
-    listSentences = []
-    for currSentence in annotationLinesListNoPauses:
-        currSectionSyllables = []
-        currSentenceBegin = currSentence[0] 
-        currSentenceEnd = currSentence[1]
-         
-        while syllablesList[syllablePointer][0] < currSentenceBegin: # search for beginning
-             syllablePointer += 1
-        if not syllablesList[syllablePointer][0] == currSentenceBegin: # start has to be aligned 
-            sys.exit("no syllable starting at sentence start at {}  ".format(currSentenceBegin) )
-        
-        fromSyllableIdx = syllablesList[syllablePointer][3]
-        while syllablePointer < len(syllablesList) and float(syllablesList[syllablePointer][1]) <= currSentenceEnd: # syllables in currSentence
-            isEndOfSentence, syllableTxt = stripPunctuationSigns(syllablesList[syllablePointer][2])
-            currSyllable = SyllableJingju(syllableTxt, -1)
-            currSyllable.setDurationInMinUnit(1)
-            currSectionSyllables.append(currSyllable)
-            syllablePointer += 1
-        if not syllablesList[syllablePointer-1][1] == currSentenceEnd: # end has to be aligned 
-            sys.exit("no syllable ending at sentence end at {}  ".format(currSentenceEnd) )
-        toSyllableIdx = syllablesList[syllablePointer-1][3]
-        
-        listSentences.append(( currSentenceBegin, currSentenceEnd, fromSyllableIdx, toSyllableIdx, currSectionSyllables))
 
-     
-    return listSentences
+
+
 
 
 def mergeDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPA):
@@ -150,16 +92,30 @@ def mergeDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPA):
 
 
 def splitThePhoneme(doublePhoneme, firstPhoeneme):
+    '''
+    split double phoneme from annotation into its parts: first and second phoneme
+    '''
     firstPhoenemeTxt = firstPhoeneme.ID
     idx = doublePhoneme.ID.find(firstPhoenemeTxt) # find substring
     secondPhonemeTxt = doublePhoneme.ID[idx + len(firstPhoenemeTxt):]
-    
+
     splitPhoneme1 = Phoneme(firstPhoenemeTxt)
+    splitPhoneme2 = Phoneme(secondPhonemeTxt)
+    
+    from hmm.ParametersAlgo import ParametersAlgo
+    
     splitPhoneme1.setBeginTs(doublePhoneme.beginTs)
-    ts = doublePhoneme.beginTs +  (doublePhoneme.endTs-doublePhoneme.beginTs) /2
+    if not splitPhoneme1.isVowelJingju(): # first is consonant
+        if not splitPhoneme2.isVowelJingju():
+            sys.exit("two consecutive consonants in annotation. Not implemented ".format(splitPhoneme1, splitPhoneme2))
+        durationPhoneme1 = ParametersAlgo.CONSONANT_DURATION_IN_SEC
+    elif not splitPhoneme2.isVowelJingju(): # second is consonant
+        durationPhoneme1 = max(doublePhoneme.endTs - doublePhoneme.beginTs - ParametersAlgo.CONSONANT_DURATION_IN_SEC, (doublePhoneme.endTs - doublePhoneme.beginTs) / 2 )
+    else: # both vowels
+        durationPhoneme1 = (doublePhoneme.endTs-doublePhoneme.beginTs) /2
+    ts = doublePhoneme.beginTs +  durationPhoneme1
     splitPhoneme1.setEndTs(ts)
     
-    splitPhoneme2 = Phoneme(secondPhonemeTxt)
     splitPhoneme2.setBeginTs(ts)
     splitPhoneme2.setEndTs(doublePhoneme.endTs)
     
@@ -189,7 +145,9 @@ def divideIntoSentencesFromAnnoWithSil(annotationURI):
         fromSyllableIdx, toSyllableIdx, syllablePointer, currSectionSyllables = \
          _findBeginEndIndices(syllablesList, syllablePointer, currSentenceBeginTs, currSentenceEndTs, highLevel )
         
-        listSentences.append(( currSentenceBeginTs, currSentenceEndTs, fromSyllableIdx, toSyllableIdx, currSectionSyllables))
+        banshiType = 'none'
+        currSentence = SentenceJingju(currSectionSyllables,  currSentenceBeginTs, currSentenceEndTs, fromSyllableIdx, toSyllableIdx, banshiType)
+        listSentences.append(currSentence)
 
      
     return listSentences
@@ -205,6 +163,8 @@ def createSyllable(currSentenceSyllables, syllableText):
     
     currSentenceSyllables.append(currSyllable)
     return currSentenceSyllables
+
+
 
 def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBeginTs, highLevelEndTs, highLevel):
     ''' 
@@ -238,35 +198,6 @@ def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBe
 
 
 
-    
-
-
-
-def syllables2Lyrics(syllablesAsText):
-        '''
-        input: sylables as text
-        creates objects of class Lyrics consisting of objects of class Syllable 
-        '''
-        
-        listWords = []
-        for syllable in syllablesAsText:
-            # word of only one syllable
-            word, dummy = createWord([], syllable)
-            listWords.append(word)
-    
-
-#         Phonetizer.initLookupTable(True,  'phonemeMandarin2METUphonemeLookupTableSYNTH')
-        Phonetizer.initLookupTable(True,  'XSAMPA2METUphonemeLookupTableSYNTH')
-
-        # load phonetic dict 
-#         Phonetizer.initPhoneticDict('syl2phn46.txt')
-        Phonetizer.phoneticDict = createDictSyll2XSAMPA()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
-    
-        ## 3) create lyrics
-        # here is called Syllable.expandToPhonemes.
-        lyrics = Lyrics(listWords)
-        return lyrics
-    
   
 def stripPunctuationSigns(string_):
     isEndOfSentence = False

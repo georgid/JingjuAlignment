@@ -10,40 +10,47 @@ from MusicXmlParser import MusicXMLParser
 from hmm.ParametersAlgo import ParametersAlgo
 
 from doitOneChunkAlign import doitOneChunkAlign
-from lyricsParser import divideIntoSentencesFromAnno,\
-    divideIntoSentencesFromAnnoWithSil
-import os
+from lyricsParser import divideIntoSentencesFromAnnoWithSil
+from runitHTK import runitHTK
+from matplotlib.pyplot import legend
 
 
-def runWithParametersAll(argv):
+from Utilz import getMeanAndStDev
+
+
+
+def calcAccuracy(whichSentence, currCorrectDuration, currTotalDuration, correctDuration, totalDuration):
     
-    if len(argv) != 4:
-            print ("Tool to get alignment accuracy of of one jingju aria with different parameters ")
-            print ("usage: {}    <withScores> <deviation_INSeconds> <withVocalPrediciton> ".format(argv[0]) )
-            sys.exit()
-            
-    path = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/'
-    from Utilz import findFilesByExtension
+    '''
+    helper calc correct duration 
+    '''
+    currAcc = currCorrectDuration / currTotalDuration
+   
+    print "sentence {}: acc ={:.2f}".format(whichSentence, currAcc)
+    correctDuration += currCorrectDuration
+    totalDuration += currTotalDuration
     
-    URiREcordings = findFilesByExtension(path, 'wav')
-    for URiREcording in URiREcordings:
-        URiREcording = os.path.splitext(URiREcording)[0] 
-        print "working on " + URiREcording
-        runWithParameters( ["dummy", URiREcording,  argv[2] ] )
-        
+    return currAcc, correctDuration, totalDuration
+
 
 
 def runWithParameters(argv):
     
     if len(argv) != 3:
-            print ("Tool to get alignment accuracy of of one jingju aria with different parameters ")
+            print ("Tool to get alignment accuracy of one jingju aria with different parameters ")
             print ("usage: {}   <URIRecording No Extension>  <deviation_INSeconds> ".format(argv[0]) )
             sys.exit()
-
-
+    
     URIrecordingNoExt =  argv[1]
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
-
+    
+   
+    correctDurationHTK = 0
+    totalDurationHTK = 1
+    accuracyListHTK = []
+#     correctDurationHTK, totalDurationHTK, accuracyListHTK = runitHTK(["dummy", URIrecordingNoExt ])       
+    
+    
     # load total # different sentences + their rspective ts
 #         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
     listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
@@ -57,40 +64,66 @@ def runWithParameters(argv):
         musicXmlURI = URIrecordingNoExt + '_score.xml'
         musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
     
+
+    
+    correctDurationOracle = 0
+    totalDurationOracle = 0
+    accuracyListOracle = []
+    
+    
     correctDuration = 0
     totalDuration = 0
     accuracyList = []
     
     withVocalPrediction = 0
-    withOracle = 0
 #     for whichSentence, currSentence in  reversed(list(enumerate(listSentences))):
     for whichSentence, currSentence in  enumerate(listSentences):
+        withOracle = 1
+         
+  
         currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction)  
-
-        currAcc = currCorrectDuration / currTotalDuration
-        accuracyList.append(currAcc)
-        print "sentence {}: acc ={:.2f}".format(whichSentence, currAcc)
+        # calc local accuracy
+        currAccOracle, correctDurationOracle, totalDurationOracle = calcAccuracy( whichSentence, currCorrectDuration, currTotalDuration,  correctDurationOracle, totalDurationOracle)
+         
+        accuracyListOracle.append(currAccOracle)
         
-        correctDuration += currCorrectDuration
-        totalDuration += currTotalDuration
+        
+        
+        # calc local acc
+#         withOracle = 0
+#         currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction)  
+#         # calc local accuracy
+#         currAcc, correctDuration, totalDuration = calcAccuracy( whichSentence, currCorrectDuration, currTotalDuration,  correctDuration, totalDuration)
+#          
+#         accuracyList.append(currAcc)   
+#     print "final: {:.2f}".format(correctDuration / totalDuration * 100)     
 
-##### TRICK: take only first three sentences:
-#         if whichSentence == 2:
-#             break
-    print "final: {:.2f}".format(correctDuration / totalDuration * 100)     
     import matplotlib.pyplot as plt
-    plt.plot(accuracyList, 'ro')
-#     plt.show()  
+    plt.plot(accuracyListOracle, 'ro', label='oracle')
+    # plot mean and st dev
+    mean, stDev, median = getMeanAndStDev(accuracyListOracle)
+    plt.errorbar(len(accuracyListOracle) / 2.0, mean, stDev, ecolor='r', linestyle='None', marker='^')
+    
+    plt.plot(accuracyList, 'go', label = 'xampa')
+    plt.plot(accuracyListHTK, 'bo', label = 'htk')
+    legend(loc=3, fontsize=12)
+    plt.xlabel(URIrecordingNoExt, fontsize=28)
+
+    plt.show()
+    
+    
+    return  correctDurationHTK, totalDurationHTK, correctDurationOracle, totalDurationOracle, correctDuration, totalDuration
     
 if __name__ == '__main__':
-#     runWithParameters(sys.argv)
-    runWithParametersAll(sys.argv)
+    runWithParameters(sys.argv)
+#     runWithParametersAll(sys.argv)
 
 
 #     example: 
 # python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 dan-xipi_01 0
 # python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/ 1 0.1 laosheng-xipi_02 0
 
+# python /Users/joro/Documents/Phd/UPF/voxforge/myScripts/JingjuAlignment/runWithParams.py /Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/fold2/wangjiangting_dushoukong 2
 # 
 
 # output is printed on the console after each aria is done

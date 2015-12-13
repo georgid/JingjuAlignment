@@ -18,9 +18,6 @@ createDictSyll2XSAMPA()
 	create phonetic dictionary pinyin Syllables -> phonemes in XSAMPA 
 
 
-
-lyricsParser.syllables2Lyrics()
-	creates syllable classes out of syllables as text as being read from TextGrid 
 	
 
 SyllableJingju:

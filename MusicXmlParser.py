@@ -13,13 +13,22 @@ import logging
 
 from Lyrics import Lyrics
 from Word import Word
-from lyricsParser import stripPunctuationSigns, syllables2Lyrics
+from lyricsParser import stripPunctuationSigns, \
+     createSyllable
 from Phonetizer import Phonetizer
 import sys
 import os.path
+from SentenceJingju import SentenceJingju
 
 # 64th of note
 MIN_DUR_UNIT = 64
+
+
+# pathEvaluation = os.path.join(parentDir, 'AlignmentEvaluation')
+# if pathEvaluation not in sys.path:
+#     sys.path.append(pathEvaluation)
+
+from WordLevelEvaluator import readNonEmptyTokensTextGrid
 
 class MusicXMLParser(object):
     '''
@@ -85,7 +94,28 @@ class MusicXMLParser(object):
 #         print "len syllables in muicXML= {} and len syllables in TextGrid = {}".format(counter, len(syllablesAllPinyin))
 
         # end of workaround 
+    
+    def createSyllables(self, annotationURI, fromSyllable, toSyllable):
+        '''
+        @param refSyllableDuration: its value does not matter. important is that all syllables are assigned same relative duration.
         
+        create Syllables, assign their durations in refSyllableDuration
+        
+        @return: lyrics - created lyrics oboject
+        '''
+        listSyllables = []
+        
+        annotationTokenList, annotationTokenListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, 3, fromSyllable, toSyllable)
+        
+        # depending on token# change size
+        
+        for idx, tsAndSyll in enumerate(annotationTokenListNoPauses):
+            syllableText = tsAndSyll[2]
+            listSyllables = createSyllable(listSyllables, syllableText)
+        
+        return listSyllables
+    
+          
     def divideIntoSections(self):
         '''
         same as lyricsParser.divideIntoSections just class variable name self.listSyllable is different
@@ -165,9 +195,13 @@ class MusicXMLParser(object):
         syllTotalDuration = noteValue
         return currSyllable, syllTotalDuration
     
+    
     def getLyricsForSection(self, whichSection):
         syllables = self.listSentences[whichSection]
-        return syllables2Lyrics(syllables)
+        
+        currSentence = SentenceJingju(syllables,  -1, -1, -1, -1, 'noneBanshi')
+
+        return currSentence
 
 
 

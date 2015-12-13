@@ -93,8 +93,8 @@ def  createDictSyll2XSAMPATest():
     
 if __name__ == '__main__':
     
-    vaidatePhonemesAllArias()        
-#     validatePhonemesWholeAriaTest()
+#     vaidatePhonemesAllArias()        
+    validatePhonemesWholeAriaTest()
 
   
 #     validatePhonemesOneSyllTest() 

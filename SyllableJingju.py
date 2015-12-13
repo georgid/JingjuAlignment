@@ -130,10 +130,10 @@ class SyllableJingju(_SyllableBase):
             finalPhoneme = self.phonemes[-1]
             
 #                               
-            if not initPhoneme.isVowel():  # initial is consonant
+            if not initPhoneme.isVowelJingju():  # initial is consonant
                 initPhoneme.durationInNumFrames = consonant_duration
 
-                if not finalPhoneme.isVowel():                 # final is consonant
+                if not finalPhoneme.isVowelJingju():                 # final is consonant
                     finalPhoneme.durationInNumFrames = consonant_duration
                     for currPhoneme in self.phonemes[1:-1]:
                         currPhoneme.durationInNumFrames = (self.durationInNumFrames - 2 * consonant_duration) / len(self.phonemes[1:-1])
@@ -146,7 +146,7 @@ class SyllableJingju(_SyllableBase):
                     finalPhoneme.durationInNumFrames = self.durationInNumFrames - (len(self.phonemes[1:-1]) * ceilDur)
             
             else: # initial is vowel
-                if not finalPhoneme.isVowel(): 
+                if not finalPhoneme.isVowelJingju(): 
                     finalPhoneme.durationInNumFrames = consonant_duration
                     for currPhoneme in self.phonemes[:-1]:
                         currPhoneme.durationInNumFrames = (self.durationInNumFrames -   consonant_duration) / len(self.phonemes[:-1])

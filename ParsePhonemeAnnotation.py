@@ -5,8 +5,8 @@ Created on Oct 6, 2015
 '''
 
 from lyricsParser import _findBeginEndIndices, stripPunctuationSigns,\
-    divideIntoSentencesFromAnnoWithSil, divideIntoSentencesFromAnno,\
-    mergeDuplicateSyllablePhonemes, syllables2Lyrics
+    divideIntoSentencesFromAnnoWithSil, \
+    mergeDuplicateSyllablePhonemes
 from lyricsParser import logger
 import os
 import sys
@@ -44,14 +44,11 @@ def validatePhonemesWholeAria(lyricsTextGrid):
     
     for whichSentence, currSentence in  enumerate(listSentences):
 #         if whichSentence <3: continue
-        fromSyllableIdx = currSentence[2]
-        toSyllableIdx = currSentence[3]
-        currSentenceSyllables = currSentence[4]
-        lyrics = syllables2Lyrics(currSentenceSyllables)
         
-        for i, syllableIdx in enumerate(range(fromSyllableIdx,toSyllableIdx)):
+        
+        for i, syllableIdx in enumerate(range(currSentence.fromSyllableIdx, currSentence.toSyllableIdx)):
              
-            validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA, lyrics.listWords[i].syllables[0])
+            validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA, currSentence.listWords[i].syllables[0])
 
 
 

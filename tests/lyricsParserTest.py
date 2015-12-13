@@ -4,20 +4,22 @@ Created on Nov 6, 2015
 @author: joro
 '''
 from lyricsParser import splitThePhoneme, mergeDuplicateSyllablePhonemes,\
-    syllables2Lyrics, createSyllable
+    createSyllable
 from Phoneme import Phoneme
 from PhonetizerDict import tokenizePhonemes
 from SyllableJingju import SyllableJingju
 
+
+    
 def testSplitThePhoneme():
     
-    doublePhoneme = Phoneme('eI^')
+    doublePhoneme = Phoneme('En')
     doublePhoneme.setBeginTs(1.4)
-    doublePhoneme.setEndTs(1.8)
+    doublePhoneme.setEndTs(3.4)
     
-    firstPhoenemeTxt = 'e'
-    ph1 , ph2 = splitThePhoneme(doublePhoneme, firstPhoenemeTxt)
-    print ph1
+    firstPhoeneme = Phoneme('E')
+    ph1 , ph2 = splitThePhoneme(doublePhoneme, firstPhoeneme)
+    print ph1.beginTs, ph2.beginTs
     
 def testMergeDuplicateSyllablePhonemes():
     phonemesAnno = []
@@ -99,6 +101,7 @@ def testMergeDuplicateSyllablePhonemes2():
     print phonemesAnnoSplit
 
 if __name__ == '__main__':
-#     testSplitThePhoneme()
+    testSplitThePhoneme()
 #     testMergeDuplicateSyllablePhonemes()
-    testMergeDuplicateSyllablePhonemes3()
+#     testMergeDuplicateSyllablePhonemes3()
+#     assignReferenceDurationsTest()

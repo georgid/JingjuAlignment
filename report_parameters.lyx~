@@ -76,6 +76,30 @@
 
 \begin_body
 
+\begin_layout Standard
+We present an approach for the automatic alignment between recordings of
+ arias from Beijing opera and their corresponding lyrics.
+ Typical for this singing tradition are long vowels (up to 30 seconds),
+ which pose a challenge for hitherto alignment strategies: They usually
+ rely on modeling phonemes with hidden Markov models (HMM) - a technique
+ that has been originally designed for speech-to-text alignment.
+ In this work we propose how to extend it by modeling durations of sung
+ syllables with respect to their reference durations.
+ Reference durations are assigned by leveraging knowledge about singing
+ principles of Beijing opera.
+ We have created duration rules that reflect two musical aspects: the structure
+ of a lyric strophe and the change of 
+\emph on
+banshi
+\emph default
+ (the metrical concept in Beijing opera).
+ The method has been evaluated on manually segmented lyric lines of one-hour
+ acapella singing.
+ This yielded accuracy of correctly aligned syllable boundaries of about
+ absolute 10 percent better than a baseline HMM-based method with no duration
+ modeling.
+\end_layout
+
 \begin_layout Section
 System Overview: 
 \end_layout
@@ -101,7 +125,7 @@ Then alignment on each lyrics-line on syllable level
 \end_layout
 
 \begin_layout Section
-Within-Syllable distribution rules
+Inter and Within-Syllable distribution rules
 \end_layout
 
 \begin_layout Standard
@@ -133,6 +157,18 @@ TODO: test on all with and without vocal
 \end_layout
 
 \begin_layout Section
+Dataset
+\end_layout
+
+\begin_layout Standard
+Duration of a phrase: 
+\end_layout
+
+\begin_layout Standard
+Especially annotated for this study
+\end_layout
+
+\begin_layout Section
 Experimental Setup
 \end_layout
 
@@ -141,12 +177,13 @@ Setting zero: oracle durations
 \end_layout
 
 \begin_layout Standard
-The idea is that results should be close to accuracy 100 % because we use
+This is glass-ceiling performance setting.
+ The idea is that results should be close to accuracy 100 % because we use
  the phoneme timestamps as if they were the observation probabilities.
  e.g.
  I set probabilities of the corresponding phoneme to 1 in the right interval
  and zero for all other phonemes.
- 
+ TODO: write this from Annas paper
 \end_layout
 
 \begin_layout Standard
@@ -157,36 +194,49 @@ status open
 done by setting parameter withOracle in doitOneChunkAlign.doitOneChunkAlign
 \end_layout
 
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
+\begin_layout Plain Layout
 For each state for a phoneme, for the frames of its duration assign 1 in
  B_map.
  So B_map is zero for all other phonemes.
  
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
 \begin_layout Standard
+Using oracle durations we have optimized the algorithm parameters on the
+ test data, since it is big enough 
+\end_layout
+
+\begin_layout Subsubsection
 Optimize parameters: 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Itemize
 -consonant_duration = 0.3, 
 \end_layout
 
-\begin_layout Standard
-- deviationINSec = 0.07 ( TODO: vowel gets longer deviationInSec.
- Try first reading syllable durs from textGrid and ) 
+\begin_layout Itemize
+- deviationINSec.
+ 2.0 is much better than 0.1.
+ 2.0 is comparable to 1.0 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+ ( TODO: vowel gets longer deviationInSec.
+ Try first reading syllable durs from textGrid and )
 \end_layout
 
-\begin_layout Standard
-- resynthesis threshold = 70 db
+\end_inset
+
+
 \end_layout
 
-\begin_layout Standard
+\begin_layout Itemize
 - weighting factor alpha = 0.97
 \end_layout
 
@@ -221,11 +271,15 @@ hmm.continuous._ContinuousHMM._ContinuousHMM._mapBOracle
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
 \begin_layout Subsection
 Equal duration with Turkish model 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Note Comment
 status open
 
@@ -236,6 +290,30 @@ X_SAMPA or METUBET switched in lyricsParser.syllables2Lyrics
 \end_inset
 
 
+\end_layout
+
+\begin_layout Plain Layout
+trained on turkish speech.
+ so test on whole data
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Baseline system
+\end_layout
+
+\begin_layout Standard
+Phoeneme models trained on sining material.
+ Recent work shows that recognition of phonemes trained on singing voice
+ can yield much better performance than speech [hansen].
+\end_layout
+
+\begin_layout Standard
+3-fold cross validation 
 \end_layout
 
 \begin_layout Subsection
@@ -249,12 +327,82 @@ Using the duration-explicit decoding, but each syllable within a sentence
  
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+if phoneme is not present in model, approximate by copying the model for
+ a closely sounding phoneme.
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+missing
+\begin_inset Quotes erd
+\end_inset
+
+ -> 
+\begin_inset Quotes eld
+\end_inset
+
+replace by
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+U^ -> copy u
+\end_layout
+
+\begin_layout Plain Layout
+@ -> copy e
+\end_layout
+
+\begin_layout Plain Layout
+9 -> copy O
+\end_layout
+
+\begin_layout Plain Layout
+----
+\end_layout
+
+\begin_layout Plain Layout
+for these since capital letters are used, they dont make difference when
+ loading .pkl files.
+\end_layout
+
+\begin_layout Plain Layout
+N -> copy n
+\end_layout
+
+\begin_layout Plain Layout
+A -> copy a
+\end_layout
+
+\begin_layout Plain Layout
+o -> copy O
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 durations from musicological rules
 \end_layout
 
 \begin_layout Subsection
 Results
+\end_layout
+
+\begin_layout Standard
+TODO: show picture example of aria where there is difference 
 \end_layout
 
 \begin_layout Standard
