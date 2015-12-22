@@ -11,7 +11,7 @@ def runWithParametersAll(argv):
     
     if len(argv) != 4:
             print ("Tool to get alignment accuracy of of one jingju aria with different parameters ")
-            print ("usage: {}    <withScores> <deviation_INSeconds> <withVocalPrediciton> ".format(argv[0]) )
+            print ("usage: {}    <deviation_INSeconds> <withRules> <withVocalPrediciton> ".format(argv[0]) )
             sys.exit()
 
     path = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/'
@@ -27,6 +27,7 @@ def runWithParametersAll(argv):
     
     correctDuration = 0
     totalDuration = 0
+    
     folds = ['fold1/', 'fold2/', 'fold3/']            
     for fold_ in folds:
     
@@ -37,7 +38,7 @@ def runWithParametersAll(argv):
             URiREcording = os.path.splitext(URiREcording)[0] 
             print "working on " + URiREcording
             
-            a, b, c, d, e, f = runWithParameters( ["dummy", URiREcording,  argv[2] ] )
+            a, b, c, d, e, f = runWithParameters( ["dummy", URiREcording,  argv[1], argv[2]] )
             
             correctDurationHTK += a 
             totalDurationHTK += b

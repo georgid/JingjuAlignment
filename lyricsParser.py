@@ -60,7 +60,7 @@ from WordLevelEvaluator import tierAliases
 
 
 
-def mergeDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPA):
+def splitDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPA, syllableIdx):
     phonemesMerged = []
 
     # make queue from phoneme anno
@@ -80,7 +80,7 @@ def mergeDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPA):
                  logger.debug("in annotation says {} but expected {} from dict".format(currPhoneme.ID, dictPhoneme.ID)) # todo: put the two new back in queue
                  
                  # split
-                 splitPhoneme1, splitPhoneme2 = splitThePhoneme(currPhoneme, dictPhoneme)
+                 splitPhoneme1, splitPhoneme2 = splitThePhoneme(currPhoneme, dictPhoneme, syllableIdx)
                  phonemesAnnoQueue.appendleft(splitPhoneme2)
                  phonemesAnnoQueue.appendleft(splitPhoneme1)
                  phonemesDictSAMPAQueue.appendleft(dictPhoneme)
@@ -91,9 +91,10 @@ def mergeDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPA):
     return phonemesMerged
 
 
-def splitThePhoneme(doublePhoneme, firstPhoeneme):
+def splitThePhoneme(doublePhoneme, firstPhoeneme, syllableIdx):
     '''
-    split double phoneme from annotation into its parts: first and second phoneme
+    split double-phone groups from annotation into its parts: first and second phoneme
+    use rules: consonant gets ParametersAlgo.CONSONANT_DURATION_IN_SEC and the rest to vowels
     '''
     firstPhoenemeTxt = firstPhoeneme.ID
     idx = doublePhoneme.ID.find(firstPhoenemeTxt) # find substring
@@ -107,7 +108,7 @@ def splitThePhoneme(doublePhoneme, firstPhoeneme):
     splitPhoneme1.setBeginTs(doublePhoneme.beginTs)
     if not splitPhoneme1.isVowelJingju(): # first is consonant
         if not splitPhoneme2.isVowelJingju():
-            sys.exit("two consecutive consonants in annotation. Not implemented ".format(splitPhoneme1, splitPhoneme2))
+            print "in syllable {}: two consecutive consonants {} and {} in annotation. Not implemented ".format(syllableIdx, splitPhoneme1, splitPhoneme2)
         durationPhoneme1 = ParametersAlgo.CONSONANT_DURATION_IN_SEC
     elif not splitPhoneme2.isVowelJingju(): # second is consonant
         durationPhoneme1 = max(doublePhoneme.endTs - doublePhoneme.beginTs - ParametersAlgo.CONSONANT_DURATION_IN_SEC, (doublePhoneme.endTs - doublePhoneme.beginTs) / 2 )
@@ -122,7 +123,7 @@ def splitThePhoneme(doublePhoneme, firstPhoeneme):
     return splitPhoneme1, splitPhoneme2
     
 
-def divideIntoSentencesFromAnnoWithSil(annotationURI):
+def divideIntoSentencesFromAnnoWithSil(annotationURI, withRules):
     '''
     infer section/line timestamps from annotation-textgrid, 
     parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
@@ -146,7 +147,7 @@ def divideIntoSentencesFromAnnoWithSil(annotationURI):
          _findBeginEndIndices(syllablesList, syllablePointer, currSentenceBeginTs, currSentenceEndTs, highLevel )
         
         banshiType = 'none'
-        currSentence = SentenceJingju(currSectionSyllables,  currSentenceBeginTs, currSentenceEndTs, fromSyllableIdx, toSyllableIdx, banshiType)
+        currSentence = SentenceJingju(currSectionSyllables,  currSentenceBeginTs, currSentenceEndTs, fromSyllableIdx, toSyllableIdx, banshiType, withRules)
         listSentences.append(currSentence)
 
      

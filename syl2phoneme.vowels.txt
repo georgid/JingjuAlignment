@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-a	a"
+a	a
 o	O
 e	7
 ai	aI^
@@ -12,7 +12,7 @@ en	@n
 eng	7N
 ong	UN
 u	u
-ua	wa"
+ua	wa
 uo	wO
 uai	waI^
 ui	weI^
@@ -20,7 +20,7 @@ uan	wan
 uang	wAN
 un	w@n
 i	i
-ia	ja"
+ia	ja
 ie	jE
 iao	jAU^
 iu	joU^

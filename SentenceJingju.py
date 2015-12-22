@@ -17,7 +17,7 @@ class SentenceJingju(Lyrics):
     '''
 
 
-    def __init__(self, listSyllables,  beginTs, endTs, fromSyllableIdx, toSyllableIdx, banshiType):
+    def __init__(self, listSyllables,  beginTs, endTs, fromSyllableIdx, toSyllableIdx, banshiType, withRules):
         '''
         '''
         
@@ -36,7 +36,8 @@ class SentenceJingju(Lyrics):
 
         Lyrics.__init__(self, listWords)
         
-        
+        if withRules:
+            self.assignReferenceDurations()
         
         self.banshiType = banshiType
         self.beginTs = beginTs
@@ -48,32 +49,60 @@ class SentenceJingju(Lyrics):
     
         ####### set durations according rules
     
-        lenSyllables = len(self.listWords) # each word has one syllable
         
-        durations = self._computeReferenceDurations(lenSyllables)
+        durations = self._computeReferenceDurations()
         
         for idx, word in enumerate(self.listWords):
                 word.syllables[0].setDurationInMinUnit(durations[idx])
                 
                 
                 
-    def _computeReferenceDurations(self, lenSyllables):
+
+    def findIndicesFirstAndSecondDou(self, lenSyllables, firstDouCount, secondDouCount):
+        '''
+        utility method
+        '''
+        count = 0
+        for idx in range(lenSyllables):
+            if self.listWords[idx].syllables[0].text != 'REST':
+                count += 1
+            if count == firstDouCount:
+                firstDouIdx = idx - 1
+            if count == secondDouCount:
+                secondDouIdx = idx - 1
+        
+        return firstDouIdx, secondDouIdx
+
+
+    def _computeReferenceDurations(self):
         '''
         use musicological rules depending on number of syllables
         '''
-    
-        durations = [0 for x in range(lenSyllables)]
-        durations[-1] = 1 / 3.0
         
-        if lenSyllables >=6:
-            if lenSyllables <= 8:
-                firstPhraseEndIndex = 1
-                secondPhraseEndIndex = 3
-            elif lenSyllables >= 9:
-                firstPhraseEndIndex = 2
-                secondPhraseEndIndex = 5
-            durations[firstPhraseEndIndex] = 1 / 4.0
-            durations[secondPhraseEndIndex] = 1 / 5.0
+        lenSyllables = len(self.listWords)
+        durations = [0 for x in range(lenSyllables)]
+        
+        #### duration ratio of whole sentence. empirically decided
+        THIRD_DOU_DURATION_RATIO = 1 / 3.0
+        FIRST_DOU_DURATION_RATIO = 1 / 4.0
+        SECOND_DOU_DURATION_RATIO = 1 / 5.0
+        
+        durations[-1] = THIRD_DOU_DURATION_RATIO
+        
+        lenSyllablesNoRests = self.getLenNoRests()
+        
+        if lenSyllablesNoRests >=6:
+            if lenSyllablesNoRests <= 8:
+                firstDouCount = 2
+                secondDouCount = 4
+            elif lenSyllablesNoRests >= 9:
+                firstDouCount = 3
+                secondDouCount = 6
+            
+            firstDouIdx, secondDouIdx = self.findIndicesFirstAndSecondDou(lenSyllables, firstDouCount, secondDouCount)
+                     
+            durations[firstDouIdx] = FIRST_DOU_DURATION_RATIO 
+            durations[secondDouIdx] = SECOND_DOU_DURATION_RATIO
         
         
         arr = numpy.array(durations)

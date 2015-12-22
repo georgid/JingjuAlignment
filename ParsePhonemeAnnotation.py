@@ -6,7 +6,7 @@ Created on Oct 6, 2015
 
 from lyricsParser import _findBeginEndIndices, stripPunctuationSigns,\
     divideIntoSentencesFromAnnoWithSil, \
-    mergeDuplicateSyllablePhonemes
+    splitDuplicateSyllablePhonemes
 from lyricsParser import logger
 import os
 import sys
@@ -39,14 +39,15 @@ def validatePhonemesWholeAria(lyricsTextGrid):
     '''
     validates if annotated phonemes are corresponmding to automatically expanded from dict
     '''
-    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure. 
+    print "working on " + lyricsTextGrid + " ..."
+    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, False) #uses TextGrid annotation to derive structure. 
     dictSyll2XSAMPA = createDictSyll2XSAMPA()
     
     for whichSentence, currSentence in  enumerate(listSentences):
 #         if whichSentence <3: continue
         
         
-        for i, syllableIdx in enumerate(range(currSentence.fromSyllableIdx, currSentence.toSyllableIdx)):
+        for i, syllableIdx in enumerate(range(currSentence.fromSyllableIdx, currSentence.toSyllableIdx+1)):
              
             validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA, currSentence.listWords[i].syllables[0])
 
@@ -82,22 +83,27 @@ def parsePhonemes(lyricsTextGrid, syllableIdx):
 
 
 
-def removeDuplicatePhonemes(phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx):
+def mergeDuplicatePhonemes(phonemesList):
     '''
     
     input in tier details : x x x o o u -> 
     output: x o u (with corresponding timestamps at begining and end) 
     '''
     ################### find index where a new phoneme appears
-    indicesStateStarts = [] # indices of change of phoneme text
+    indicesStateStarts = deque([]) # indices of change of phoneme text
     
-    currPhoneme = ''
-    for i, phoneme in enumerate(phonemesListNoPauses[fromPhonemeIdx:toPhonemeIdx + 1]):
-        if phoneme[2] == '?':   continue # ? are not new phonemes
+    currPhonemeTxt = '?'
+    for i, phoneme in enumerate(phonemesList):
         
-        if not phoneme[2] == currPhoneme: # new phoneme
-            indicesStateStarts.append(i + fromPhonemeIdx)
-            currPhoneme = phoneme[2]
+        if phoneme.ID == '?' or phoneme.ID == '':   continue # ? are not new phonemes
+        
+        if not currPhonemeTxt == phoneme.ID:
+            if  phoneme.ID.startswith(currPhonemeTxt)  : #  part of the phoneme repeats -> e.g. 'i' followed by 'in' 
+                if len(indicesStateStarts) != 0:
+                    indicesStateStarts.pop() # keep 'in' and forget 'i'
+            indicesStateStarts.append(i)
+            currPhonemeTxt = phoneme.ID
+#             if not currPhonemeTxt.endswith(phoneme.ID) : # new phoneme
     
     ################## get only unique phonemes from indices
     phonemesAnno = [] #  output: list of phonemesAnno read
@@ -105,20 +111,17 @@ def removeDuplicatePhonemes(phonemesListNoPauses, fromPhonemeIdx, toPhonemeIdx):
         idx = indicesStateStarts[i]
         idxLast = indicesStateStarts[i + 1] - 1
         
-        currPhn = Phoneme(phonemesListNoPauses[idx][2])  
         
-        currPhn.setBeginTs(phonemesListNoPauses[idx][0])
-        currPhn.setEndTs(phonemesListNoPauses[idxLast][1])
+        currPhn = phonemesList[idx]
+        currPhn.setEndTs(phonemesList[idxLast].endTs) # merge ts
        
         phonemesAnno.append(currPhn)
     
-    # add last phoneme
+    ######## add last phoneme
     lastTokenIdx = indicesStateStarts[-1]
     
-    lastPhn = Phoneme(phonemesListNoPauses[lastTokenIdx][2]) 
-    
-    lastPhn.setBeginTs(phonemesListNoPauses[lastTokenIdx][0])
-    lastPhn.setEndTs(phonemesListNoPauses[toPhonemeIdx][1])
+    lastPhn = phonemesList[lastTokenIdx] 
+    lastPhn.setEndTs(phonemesList[-1].endTs) # merge ts
     
     phonemesAnno.append(lastPhn)
     
@@ -145,19 +148,40 @@ def hasDuplicatedSyllables(phonemesAnno, phonemesDictSAMPA):
 
 
 
+
+
 def loadPhonemesAnnoOneSyll(lyricsTextGrid, syllableIdx, syllable):
     '''
-    load phonemes in XSAMPA from TextGrid. aggregate them if repeated 
-    '''
-    phonemesAnno,  syllableText = loadPhonemesFromAnno(lyricsTextGrid, syllableIdx)
-#     if syllableText == '': #  empty syll
-#          return phonemesAnno
-     
-        
-    # duplicate phoneme sequences, hack: take first repetition only
-    # split 2 phonemes from annotaion into equally sized. TODO: use rules. TODO: for 2 phonemes
+     For one syllable, load list of phonemes from annotation TextGrid, 
+     1. merge duplicate  phonemes
+     2.  split double-phoneme groups   
+     '''
+    
+    phonemesAnnoList, fromPhonemeIdx, toPhonemeIdx, syllableText, phonemesAnnoListNoPauses = parsePhonemes(lyricsTextGrid, syllableIdx)
+    
+    if syllableText == '': # skip empty syllables
+         
+        phoenemeSil = Phoneme('sil')
+        phoenemeSil.setBeginTs(phonemesAnnoList[fromPhonemeIdx][0])
+        phoenemeSil.setEndTs(phonemesAnnoList[fromPhonemeIdx][1])
+        phonemesAnno = [phoenemeSil]
+        return phonemesAnno,syllableText
+    
+    # 1. details tier has same phoneme or phoneme group duplicated
+    phonemeTokensAnno =  phonemesAnnoList[fromPhonemeIdx: toPhonemeIdx+1]
+    phonemesAnno = phonemeTokens2Classes( phonemeTokensAnno) 
+    
+    # run twice to handle special cases
+    phonemesAnno = mergeDuplicatePhonemes(phonemesAnno)
+    phonemesAnno = mergeDuplicatePhonemes(phonemesAnno)
 
-    phonemesAnno = mergeDuplicateSyllablePhonemes(phonemesAnno, syllable.phonemes)
+    
+    
+    # 2. duplicate phoneme sequences, hack: take first repetition only
+    # split 2 phonemes from annotaion
+    # TODO: for 2 phonemes
+
+    phonemesAnno = splitDuplicateSyllablePhonemes(phonemesAnno, syllable.phonemes, syllableIdx)
    
   
     return phonemesAnno, syllableText
@@ -165,6 +189,15 @@ def loadPhonemesAnnoOneSyll(lyricsTextGrid, syllableIdx, syllable):
     
 
 
+def phonemeTokens2Classes( phonemeTokensAnno):
+    phonemesAnnoList = []
+    for phonemeAnno in phonemeTokensAnno:
+        currPhn = Phoneme(phonemeAnno[2].strip())
+        currPhn.setBeginTs(phonemeAnno[0])
+        currPhn.setEndTs(phonemeAnno[1])
+        phonemesAnnoList.append(currPhn)
+    
+    return phonemesAnnoList
 
 
 
@@ -236,23 +269,3 @@ def text2Phonemes(dictSyll2XSAMPA, syllableText):
     phonemesDictSAMPAQueue = tokenizePhonemes(phonemesDictSAMPA)
     
     return  phonemesDictSAMPAQueue, phonemesDictSAMPA
-
-
-def loadPhonemesFromAnno(lyricsTextGrid, syllableIdx):
-    '''
-    For one syllable, load list of phonemes from annotation TextGrid, sieve out duplicate  phonemes 
-    '''
-    phonemesAnnoList, fromPhonemeIdx, toPhonemeIdx, syllableText, dummy = parsePhonemes(lyricsTextGrid, syllableIdx)
-    
-    if syllableText == '': # skip empty syllables
-         
-        phoenemeSil = Phoneme('sil')
-        phoenemeSil.setBeginTs(phonemesAnnoList[fromPhonemeIdx][0])
-        phoenemeSil.setEndTs(phonemesAnnoList[fromPhonemeIdx][1])
-        phonemesAnno = [phoenemeSil]
-        return phonemesAnno,syllableText
-    
-# details tier has same phoneme duplicated
-    phonemesAnno = removeDuplicatePhonemes(phonemesAnnoList, fromPhonemeIdx, toPhonemeIdx)
-    
-    return phonemesAnno,  syllableText

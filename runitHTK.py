@@ -46,7 +46,7 @@ def runitHTK(argv):
 
     # load total # different sentences + their rspective ts
 #         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
-    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
+    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, False) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
     
 
         
@@ -78,8 +78,8 @@ def runitHTK(argv):
         # calc local accuracy
         URIrecordingAnno = URIrecordingNoExt + '.TextGrid'
         evalLevel =  tierAliases.pinyin
-        fromSyllableIdx = currSentence[2]
-        toSyllableIdx = currSentence[3] 
+        fromSyllableIdx = currSentence.fromSyllableIdx
+        toSyllableIdx = currSentence.toSyllableIdx
         currCorrectDuration, currTotalDuration = evalAccuracy(URIrecordingAnno, outputHTKPhoneAlignedURI, evalLevel, fromSyllableIdx, toSyllableIdx)
         
         acc = currCorrectDuration / currTotalDuration

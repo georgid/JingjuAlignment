@@ -5,6 +5,9 @@
 \textclass article
 \begin_preamble
 \usepackage{multicol}
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+\setcitestyle{authoryear,open={(},close={)}}
 \end_preamble
 \use_default_options true
 \maintain_unincluded_children false
@@ -42,8 +45,8 @@
 \use_package stackrel 1
 \use_package stmaryrd 1
 \use_package undertilde 1
-\cite_engine basic
-\cite_engine_type default
+\cite_engine natbib
+\cite_engine_type authoryear
 \biblio_style plain
 \use_bibtopic false
 \use_indices false
@@ -76,43 +79,188 @@
 
 \begin_body
 
-\begin_layout Standard
-We present an approach for the automatic alignment between recordings of
- arias from Beijing opera and their corresponding lyrics.
- Typical for this singing tradition are long vowels (up to 30 seconds),
- which pose a challenge for hitherto alignment strategies: They usually
- rely on modeling phonemes with hidden Markov models (HMM) - a technique
- that has been originally designed for speech-to-text alignment.
- In this work we propose how to extend it by modeling durations of sung
- syllables with respect to their reference durations.
- Reference durations are assigned by leveraging knowledge about singing
- principles of Beijing opera.
- We have created duration rules that reflect two musical aspects: the structure
- of a lyric strophe and the change of 
-\emph on
-banshi
-\emph default
- (the metrical concept in Beijing opera).
- The method has been evaluated on manually segmented lyric lines of one-hour
- acapella singing.
- This yielded accuracy of correctly aligned syllable boundaries of about
- absolute 10 percent better than a baseline HMM-based method with no duration
- modeling.
+\begin_layout Title
+Automatic alignment of long syllables in acapella Beijing opera
+\end_layout
+
+\begin_layout Author
+Georgi Dzhambazov, Yile Yang, Rafael Caro, Xavier Serra
 \end_layout
 
 \begin_layout Section
-System Overview: 
+Introduction
 \end_layout
 
 \begin_layout Standard
-manual segmentation according to lyrics lines/sentences from script of aria
+
+\color black
+The task of automatic lyrics-to-audio alignment (LAA) is to find in an automatic
+ way a match between two musical aspects of a composition: the singing voice
+ and the corresponding lyrics.
+ Tracking lyrics may be beneficial for automatic karaoke generation or the
+ automatic outline of structure (inferred from lyric couplets) in the audio
+ recording.
+\end_layout
+
+\begin_layout Standard
+
+\color black
+With a few exceptions 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "wong2007automatic"
+
+\end_inset
+
+, to-date computational research on LAA has been focused mainly on western
+ popular music
+\color inherit
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "fujihara2012lyrics"
+
+\end_inset
+
+.
+ Unlike popular music, in classical music traditions, duration of vocals
+ might vary substantially from one syllable to the next.
+ Actors of Beijing opera, in particular, tend to prolong particular vowels
+ to pertain to the poetic rhythm of the story, being sung.
+ More specifically a lyrics line is usually divided into 3 units - 
+\emph on
+dou
+\emph default
+, each consisting of 2 to 5 written characters 
+\begin_inset CommandInset citation
+LatexCommand citep
+after "Chapter III"
+key "wichmann1991listening"
+
+\end_inset
+
+.
+ To outline a 
+\emph on
+dou
+\emph default
+, an actor has the option to sustain the vocal of its final syllable 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+We use the
+\emph on
+ 
+\emph default
+term
+\emph on
+ syllable 
+\emph default
+as equivalent to one written character.
+ Final syllables in this work will be referred as 
+\emph on
+key syllables
+\end_layout
+
+\end_inset
+
+ (sometimes performing ornamentation/vibrato), resulting in a substantially
+ longer vowel.
+\end_layout
+
+\begin_layout Standard
+In this work we model explicitly phoneme durations by a probabilistic method
+ capturing lyrics principles of Beijing opera.
+\end_layout
+
+\begin_layout Section
+Method Overview
+\end_layout
+
+\begin_layout Standard
+First an audio recording is manually divided into lines as indicated in
+ the lyrics script of the aria.
  
 \begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
-Lyrics are read from TextGrid annotaion layer 'lines' IMPL: lyricsParser.divideIn
-toSectionsFromAnno
+Lyrics are read from TextGrid annotation layer 'lines' IMPL: lyricsParser.divideI
+ntoSectionsFromAnno
+\end_layout
+
+\end_inset
+
+Then each line is represented as a sequence of phoneme models, tied into
+ a 
+\color black
+probabilistic duration-aware model 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Dzhambazov"
+
+\end_inset
+
+.
+
+\color inherit
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\color black
+LAA is
+\color red
+ 
+\color inherit
+typically based on modeling phonemes with HMMs.
+ However, HMMs - originally applied in speech-to-text alignment have the
+ drawback that they might not be capable to represent well vocals with longer
+ durations.
+ Unlike speech, for singing voice, durations of vowels have higher variation
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "kruspekeyword"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+Each phoneme model yields an observation probability for singing audio,
+ based on its timbral features.
+ Finally, accuracy (as defined in 
+\begin_inset CommandInset citation
+LatexCommand citealt
+after "Fig. 9"
+key "fujihara2011lyricsynchronizer"
+
+\end_inset
+
+) is evaluated at beginning and ending timestamps of each Mandarin syllable.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Section
+Vocal/nonvocal segmentation
+\end_layout
+
+\begin_layout Plain Layout
+tested on dan-xipi-01, resulted in worse accuracy.
+ 
+\end_layout
+
+\begin_layout Plain Layout
+TODO: test on all with and without vocal
 \end_layout
 
 \end_inset
@@ -120,20 +268,65 @@ toSectionsFromAnno
 
 \end_layout
 
-\begin_layout Standard
-Then alignment on each lyrics-line on syllable level
+\begin_layout Subsection*
+Durational model
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:DHMM"
+
+\end_inset
+
+
 \end_layout
 
-\begin_layout Section
-Inter and Within-Syllable distribution rules
-\end_layout
-
 \begin_layout Standard
-\begin_inset Note Note
+First,
+\emph on
+ 
+\emph default
+all probable 
+\emph on
+key syllables 
+\emph default
+with regard to the common for Beijing 
+\emph on
+dou
+\emph default
+ grouping patterns (e.g.
+ 3 + 3 + 4 syllables in 10-syllable line) are assigned longer reference
+ durations.
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
-IMPL: sp at end of syllables are not optional.
+IMPL: in SentenceJingju.SentenceJingju.assignReferenceDurations()
+\end_layout
+
+\end_inset
+
+ Second, the reference duration of each syllable is divided among its constituen
+t phonemes, considering the initial-final division of Mandarin syllables
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "duanmu2000phonology"
+
+\end_inset
+
+, which forms a sequence of phoneme reference durations 
+\begin_inset Formula $R_{i}$
+\end_inset
+
+ 
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+IMPL: SyllableBeijing.SyllableJingju.calcPhonemeDurations
+\end_layout
+
+\begin_layout Plain Layout
+sp at end of syllables are not optional.
  They are assigned duration as a consonant A, which might result in actual
  duration from 0 to A 
 \end_layout
@@ -143,50 +336,98 @@ IMPL: sp at end of syllables are not optional.
 
 \end_layout
 
-\begin_layout Section
-Vocal/nonvocal segmentation
-\end_layout
-
 \begin_layout Standard
-tested on dan-xipi-01, resulted in worse accuracy.
- 
+
+\color black
+We propose a duration-aware hidden Markov model (DHMM).
+ It models the duration of a phoneme as a normal distribution, centered
+ at 
+\begin_inset Formula $R_{i}$
+\end_inset
+
+ with a standard deviation 
+\begin_inset Formula $d$
+\end_inset
+
+
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+
+\color black
+We have utilized fixed vowel and consonant standard deviations 
+\begin_inset Formula $d_{v}$
+\end_inset
+
+ and 
+\begin_inset Formula $d_{c}$
+\end_inset
+
+.
 \end_layout
 
-\begin_layout Standard
-TODO: test on all with and without vocal
-\end_layout
+\end_inset
 
-\begin_layout Section
-Dataset
-\end_layout
+.
+ A proper 
+\begin_inset Formula $d$
+\end_inset
 
-\begin_layout Standard
-Duration of a phrase: 
-\end_layout
+ assures that a phoneme sung longer or shorter than the expected 
+\begin_inset Formula $R_{i}$
+\end_inset
 
-\begin_layout Standard
-Especially annotated for this study
+ can be adequately handled.
 \end_layout
 
 \begin_layout Section
 Experimental Setup
 \end_layout
 
-\begin_layout Subsection
-Setting zero: oracle durations
+\begin_layout Standard
+Our dataset consists of excerpts from 15 arias with acapella female voice
+ of total duration of 67 minutes.
+ A line has an average duration of 12.3 seconds and 9 syllables 
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+The dataset has been especially annotated for this study.
+ Annotations are made available on http://compmusic.upf.edu/node/286
+\end_layout
+
+\end_inset
+
+.
+ 
 \end_layout
 
 \begin_layout Standard
-This is glass-ceiling performance setting.
- The idea is that results should be close to accuracy 100 % because we use
- the phoneme timestamps as if they were the observation probabilities.
- e.g.
- I set probabilities of the corresponding phoneme to 1 in the right interval
- and zero for all other phonemes.
- TODO: write this from Annas paper
+To define a glass-ceiling accuracy an alignment with oracle observation
+ probabilities was performed: Looking at phoneme annotations, we set the
+ probability of a phoneme to 1 during its time interval and 0 otherwise.
+ We found that accuracy is overall close to 100% 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Most optimal results were obtained at the values: consonant duration = 0.3,
+ 
+\begin_inset Formula $d_{c}$
+\end_inset
+
+ = 0.7; 
+\begin_inset Formula $d_{v}$
+\end_inset
+
+ = 3.0 
 \end_layout
 
-\begin_layout Standard
+\end_inset
+
+, which means that the model is generally feasible to hand the highly-varying
+ vocal durations of Beijing singing.
 \begin_inset Note Comment
 status open
 
@@ -207,40 +448,29 @@ For each state for a phoneme, for the frames of its duration assign 1 in
 \end_layout
 
 \begin_layout Standard
-Using oracle durations we have optimized the algorithm parameters on the
- test data, since it is big enough 
-\end_layout
-
-\begin_layout Subsubsection
-Optimize parameters: 
-\end_layout
-
-\begin_layout Itemize
--consonant_duration = 0.3, 
-\end_layout
-
-\begin_layout Itemize
-- deviationINSec.
- 2.0 is much better than 0.1.
- 2.0 is comparable to 1.0 
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
- ( TODO: vowel gets longer deviationInSec.
+2.0 is much better than 0.1.
+ 2.0 is comparable to 1.0.
+ vowel gets longer deviationInSec.
  Try first reading syllable durs from textGrid and )
 \end_layout
 
 \end_inset
 
 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+weighting factor alpha = 0.97
 \end_layout
 
-\begin_layout Itemize
-- weighting factor alpha = 0.97
-\end_layout
+\end_inset
 
-\begin_layout Standard
+
 \begin_inset Note Comment
 status open
 
@@ -268,67 +498,49 @@ hmm.continuous._ContinuousHMM._ContinuousHMM._mapBOracle
 
 \end_inset
 
+As a baseline an alignment is executed with no duration modeling with the
+ standard Viterbi decoding 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "rabiner1989tutorial"
 
-\end_layout
+\end_inset
 
-\begin_layout Standard
+.
+ We have tested the approach by 3-fold cross validation with folds having
+ approximately equal size.
+ 
+\color green
+
 \begin_inset Note Note
 status open
 
-\begin_layout Subsection
-Equal duration with Turkish model 
+\begin_layout Plain Layout
+
+\color green
+where phoneme models are trained on a subset of the dataset using the phoneme-le
+vel annotations and evaluated on a hold-out subset.
 \end_layout
 
-\begin_layout Plain Layout
-\begin_inset Note Comment
+\end_inset
+
+
+\begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-X_SAMPA or METUBET switched in lyricsParser.syllables2Lyrics
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-trained on turkish speech.
- so test on whole data
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-Baseline system
-\end_layout
-
-\begin_layout Standard
-Phoeneme models trained on sining material.
  Recent work shows that recognition of phonemes trained on singing voice
- can yield much better performance than speech [hansen].
+ can yield better performance compared to the traditional way of training
+ on speech [hansen, kruspe].
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-3-fold cross validation 
-\end_layout
-
-\begin_layout Subsection
-equal durations: each syllable gets equal duration with XSAMPA Chinese model
- 
-\end_layout
-
-\begin_layout Standard
-Using the duration-explicit decoding, but each syllable within a sentence
- gets equal duration.
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
@@ -393,19 +605,300 @@ o -> copy O
 
 \end_layout
 
-\begin_layout Subsection
-durations from musicological rules
+\begin_layout Standard
+Alignment with DHMM considers reference durations 
+\begin_inset Formula $R_{i}$
+\end_inset
+
+ assigned observing two phenomena: the optional prolongation of 
+\emph on
+key syllables
+\emph default
+ (see section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:DHMM"
+
+\end_inset
+
+) and 
+\emph on
+banshi 
+\emph default
+\color black
+(metrical pattern)
+\color inherit
+ changes: A metrical pattern in an aria can be changed up to several times
+ at the end of a structural section.
+ We observed in the dataset that usually the final 
+\emph on
+key syllable
+\emph default
+ of the last line in a pattern is prolonged additionally and thus took this
+ into account for defining 
+\begin_inset Formula $R_{i}$
+\end_inset
+
+.
+ The same 3-fold cross validation setting has been used.
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Results
 \end_layout
 
 \begin_layout Standard
-TODO: show picture example of aria where there is difference 
+Table 1 depicts how the proposed duration model outperforms the baseline
+ alignment.
+ 
 \end_layout
 
 \begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="4">
+<features rotate="0" tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+oracle
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+baseline
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+DHMM
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+overall
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+79
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+56.8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+66.14
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+median per line
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+98
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+75.2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+82.3
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Comparison of total oracle, baseline and DHMM alignment.
+ Accuracy is reported as accumulate correct duration over accumulate total
+ duration over all lines from a set of arias.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "comparison-one-aria"
+
+\end_inset
+
+ is depicted the model's accuracy for an aria with very long 
+\emph on
+key syllables
+\emph default
+, for which the baseline model performs poor, whereas the DHMM aligns decently.
+ One can see the advantage of the proposed model for example for sentence
+ 5.
+ Looking at oracle, one can conclude that reaching closer to it can be achieved
+ in the future by designing features which capture phoneme identities in
+ a more robust way.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: comment more
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename figure_Accuracy_xixiangji_biuntian.png
+	width 90page%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Comparison of oracle, baseline and DHMM results on one aria.
+ Each point represents one lyrics line, vertical lines represent 
+\emph on
+banshi
+\emph default
+ changes 
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "comparison-one-aria"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+TODO: show picture example of aria where there is difference 
+\end_layout
+
+\begin_layout Plain Layout
 \begin_inset Note Comment
 status open
 
@@ -420,7 +913,7 @@ Documents/Phd/UPF/arias_dev_05_t_70
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="6">
 <features rotate="90" tabularvalignment="middle">
@@ -839,22 +1332,22 @@ with reading score durarions
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 dan_xipi_01 has best score: seems it s due to female voice, not to tempo.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset VSpace bigskip
 \end_inset
 
 ----------
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Tempo (not done yet):
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="5">
 <features rotate="90" tabularvalignment="middle">
@@ -1199,15 +1692,31 @@ with score
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Slow tempo has a lot of variation, not stable results.
  middle tempo is better
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 increasing the deviation brings improvement when tempo is slow, but affects
  results negatively for mid and fast tempo.
  
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "/Users/joro/Documents/Phd/UPF/papers/FMA2014_tex_fullPaper/JabRefLyrics2Audio,/Users/joro/Documents/Phd/UPF/papers/FMA2014_tex_fullPaper/JabRef_saerch_by_lyrics,JingjuAlignment"
+options "plainnat"
+
+\end_inset
+
+
 \end_layout
 
 \end_body

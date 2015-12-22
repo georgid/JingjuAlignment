@@ -69,13 +69,12 @@ def loadLyrics(URIrecordingNoExt, currSentence):
     lyricsWithModels.printWordsAndStates()
 
 
-def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSentence, withOracle, withDurations, withVocalPrediction):
+def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction, withRules):
     '''
     align one chunk only.
     @param musicXMLParser: parsed  score for whole recording
     @param whichSentence: sentence number to process  
     '''
-
     
     
     deviation = str(ParametersAlgo.DEVIATION_IN_SEC)
@@ -84,9 +83,12 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
         tokenLevelAlignedSuffix = '.syllables_dur_gmm'
     else:
         if withOracle:
-            tokenLevelAlignedSuffix = '.syllables_oracle_cons'
+            tokenLevelAlignedSuffix = '.syllables_oracle'
         else:
             tokenLevelAlignedSuffix = '.syllables'
+        
+        if withRules:
+            tokenLevelAlignedSuffix += '_rules'
     
     tokenLevelAlignedSuffix += '_' + deviation 
             
@@ -130,7 +132,7 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser,  whichSentence, currSen
     acc = correctDuration / totalDuration
     print "result is: " + str(acc)
     
-    return correctDuration, totalDuration
+    return correctDuration, totalDuration, detectedTokenList, currSentence.beginTs
 
 
 

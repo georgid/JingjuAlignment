@@ -14,5 +14,6 @@ yue	jH9
 yuan	jHEn
 jun	cyn
 qun	cyn
+xun	cyn
 xue	cH9
 juan	cHEn

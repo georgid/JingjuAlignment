@@ -199,7 +199,7 @@ class MusicXMLParser(object):
     def getLyricsForSection(self, whichSection):
         syllables = self.listSentences[whichSection]
         
-        currSentence = SentenceJingju(syllables,  -1, -1, -1, -1, 'noneBanshi')
+        currSentence = SentenceJingju(syllables,  -1, -1, -1, -1, 'noneBanshi', False)
 
         return currSentence
 

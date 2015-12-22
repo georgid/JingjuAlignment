@@ -84,7 +84,12 @@ Automatic alignment of long syllables in acapella Beijing opera
 \end_layout
 
 \begin_layout Author
-Georgi Dzhambazov, Yile Yang, Rafael Caro, Xavier Serra
+Anonymous Author, Anonymous Author, Anonymous Author, Anonymous Author
+\end_layout
+
+\begin_layout Address
+\align center
+Anonymous Institute
 \end_layout
 
 \begin_layout Section
@@ -97,9 +102,9 @@ Introduction
 The task of automatic lyrics-to-audio alignment (LAA) is to find in an automatic
  way a match between two musical aspects of a composition: the singing voice
  and the corresponding lyrics.
- Tracking lyrics may be beneficial for automatic karaoke generation or the
- automatic outline of structure (inferred from lyric couplets) in the audio
- recording.
+ Tracking lyrics may be used to automatically outline the structure of the
+ audio recording (inferred from lyric), which can be beneficial for musicologist
+s or singing students.
 \end_layout
 
 \begin_layout Standard
@@ -123,8 +128,8 @@ key "fujihara2012lyrics"
 \end_inset
 
 .
- Unlike popular music, in classical music traditions, duration of vocals
- might vary substantially from one syllable to the next.
+ Unlike popular music, in traditional genres, duration of vocals might vary
+ substantially from one syllable to the next.
  Actors of Beijing opera, in particular, tend to prolong particular vowels
  to pertain to the poetic rhythm of the story, being sung.
  More specifically a lyrics line is usually divided into 3 units - 
@@ -198,7 +203,7 @@ Then each line is represented as a sequence of phoneme models, tied into
 probabilistic duration-aware model 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "Dzhambazov"
+key "anonymous"
 
 \end_inset
 
@@ -288,7 +293,7 @@ all probable
 \emph on
 key syllables 
 \emph default
-with regard to the common for Beijing 
+with regard to the 
 \emph on
 dou
 \emph default
@@ -337,6 +342,43 @@ sp at end of syllables are not optional.
 \end_layout
 
 \begin_layout Standard
+A metrical pattern (
+\emph on
+banshi
+\emph default
+) in an aria can be changed up to several times 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "wichmann1991listening"
+
+\end_inset
+
+.
+ We observed in the dataset that usually the final 
+\emph on
+key syllable
+\emph default
+ of the last line in a 
+\emph on
+banshi
+\emph default
+ is prolonged additionally.
+ Thus we defined 
+\begin_inset Formula $R_{i}$
+\end_inset
+
+ of final 
+\emph on
+key syllables
+\emph default
+ considering 
+\emph on
+banshi
+\emph default
+ changes.
+\end_layout
+
+\begin_layout Standard
 
 \color black
 We propose a duration-aware hidden Markov model (DHMM).
@@ -347,26 +389,6 @@ We propose a duration-aware hidden Markov model (DHMM).
 
  with a standard deviation 
 \begin_inset Formula $d$
-\end_inset
-
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
-\color black
-We have utilized fixed vowel and consonant standard deviations 
-\begin_inset Formula $d_{v}$
-\end_inset
-
- and 
-\begin_inset Formula $d_{c}$
-\end_inset
-
-.
-\end_layout
-
 \end_inset
 
 .
@@ -388,13 +410,23 @@ Experimental Setup
 \begin_layout Standard
 Our dataset consists of excerpts from 15 arias with acapella female voice
  of total duration of 67 minutes.
- A line has an average duration of 12.3 seconds and 9 syllables 
+ A line has an average duration of 18.3 seconds and 9 syllables 
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
 The dataset has been especially annotated for this study.
- Annotations are made available on http://compmusic.upf.edu/node/286
+ Annotations are made available on http://anonymous 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+http://compmusic.upf.edu/node/286
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -404,16 +436,39 @@ The dataset has been especially annotated for this study.
 \end_layout
 
 \begin_layout Standard
-To define a glass-ceiling accuracy an alignment with oracle observation
- probabilities was performed: Looking at phoneme annotations, we set the
- probability of a phoneme to 1 during its time interval and 0 otherwise.
- We found that accuracy is overall close to 100% 
+To define a glass ceiling accuracy an alignment was performed considering
+ phoneme annotations as an oracle for acoustic features.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Looking at phoneme annotations, we set the probability of a phoneme to 1
+ during its time interval and 0 otherwise.
+\end_layout
+
+\end_inset
+
+ We found that accuracy is overall close to 100%
 \begin_inset Foot
 status open
 
 \begin_layout Plain Layout
-Most optimal results were obtained at the values: consonant duration = 0.3,
- 
+
+\color black
+We have utilized fixed vowel and consonant standard deviations 
+\begin_inset Formula $d_{v}$
+\end_inset
+
+ and 
+\begin_inset Formula $d_{c}$
+\end_inset
+
+.
+
+\color inherit
+ Most optimal results were obtained at the values: consonant duration =
+ 0.3, 
 \begin_inset Formula $d_{c}$
 \end_inset
 
@@ -445,9 +500,6 @@ For each state for a phoneme, for the frames of its duration assign 1 in
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Note Note
 status open
 
@@ -470,60 +522,9 @@ weighting factor alpha = 0.97
 
 \end_inset
 
-
-\begin_inset Note Comment
-status open
-
-\begin_layout Plain Layout
-IMPL: To decode with oracle phonemes durations still phoneme models should
- be used.
- This is so because we use code from LyricsWithModels as utility to expand
- models to their states.
- Therefore we need to load htk models corresponding to each phoneme parsed
- from annotation.
- Done in hmm.examples.main.parsePhoenemeAnnoDursOracle()
-\end_layout
-
-\begin_layout Plain Layout
-===========
-\end_layout
-
-\begin_layout Plain Layout
-IMPL: state are assigned 1-s in:
-\end_layout
-
-\begin_layout Plain Layout
-hmm.continuous._ContinuousHMM._ContinuousHMM._mapBOracle
-\end_layout
-
-\end_inset
-
-As a baseline an alignment is executed with no duration modeling with the
- standard Viterbi decoding 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "rabiner1989tutorial"
-
-\end_inset
-
-.
- We have tested the approach by 3-fold cross validation with folds having
- approximately equal size.
+As a baseline we considered same models but without duration modeling.
  
 \color green
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-
-\color green
-where phoneme models are trained on a subset of the dataset using the phoneme-le
-vel annotations and evaluated on a hold-out subset.
-\end_layout
-
-\end_inset
-
 
 \begin_inset Note Note
 status open
@@ -537,9 +538,8 @@ status open
 \end_inset
 
 
-\end_layout
+\color inherit
 
-\begin_layout Standard
 \begin_inset Note Comment
 status open
 
@@ -602,54 +602,32 @@ o -> copy O
 
 \end_inset
 
+For both baseline and DHMM, to assure good generalization of results, evaluation
+ was done by cross validation with 3-equally sized folds.
+ 
+\color green
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\color green
+where phoneme models are trained on a subset of the dataset using the phoneme-le
+vel annotations and evaluated on a hold-out subset.
+\end_layout
+
+\end_inset
+
 
 \end_layout
 
-\begin_layout Standard
-Alignment with DHMM considers reference durations 
-\begin_inset Formula $R_{i}$
-\end_inset
-
- assigned observing two phenomena: the optional prolongation of 
-\emph on
-key syllables
-\emph default
- (see section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:DHMM"
-
-\end_inset
-
-) and 
-\emph on
-banshi 
-\emph default
-\color black
-(metrical pattern)
-\color inherit
- changes: A metrical pattern in an aria can be changed up to several times
- at the end of a structural section.
- We observed in the dataset that usually the final 
-\emph on
-key syllable
-\emph default
- of the last line in a pattern is prolonged additionally and thus took this
- into account for defining 
-\begin_inset Formula $R_{i}$
-\end_inset
-
-.
- The same 3-fold cross validation setting has been used.
-\end_layout
-
-\begin_layout Section
+\begin_layout Subsection*
 Results
 \end_layout
 
 \begin_layout Standard
-Table 1 depicts how the proposed duration model outperforms the baseline
- alignment.
+Table 1 shows how the proposed duration model outperforms the baseline alignment.
  
 \end_layout
 
@@ -748,7 +726,7 @@ overall
 \begin_inset Text
 
 \begin_layout Plain Layout
-median per line
+median per lyrics line
 \end_layout
 
 \end_inset
@@ -819,7 +797,18 @@ reference "comparison-one-aria"
 \emph on
 key syllables
 \emph default
-, for which the baseline model performs poor, whereas the DHMM aligns decently.
+, for which the baseline model performs poor, whereas the DHMM aligns decently
+ 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Please find attached a video recording demonstrating the alignment accuracy
+\end_layout
+
+\end_inset
+
+.
  One can see the advantage of the proposed model for example for lyrics
  line 5.
  Looking at oracle, one can conclude that reaching closer to it can be achieved
@@ -845,7 +834,7 @@ TODO: comment more
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics

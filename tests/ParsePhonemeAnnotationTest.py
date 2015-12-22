@@ -7,6 +7,7 @@ Created on Oct 1, 2015
 '''
 import os
 import sys
+from lyricsParser import divideIntoSentencesFromAnnoWithSil
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
@@ -21,7 +22,7 @@ AlignmentDurURI = parentDir + 'AlignmentDuration'
 if AlignmentDurURI not in sys.path:
     sys.path.append(AlignmentDurURI)    
     
-from PhonetizerDict import tokenizePhonemes
+from PhonetizerDict import tokenizePhonemes, createDictSyll2XSAMPA
 from ParsePhonemeAnnotation import     validatePhonemesOneSyll,  validatePhonemesWholeAria
 
 
@@ -30,12 +31,17 @@ def validatePhonemesOneSyllTest():
     test parsing of one syll by its syl idx
     '''
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02'
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat_rules/fold1/xixiangji_biyuntian'
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat_rules/fold1/shiwenhui_tingxiongyan'
+    
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
-    # TextGrid-1
-    syllableIdx = 107
 
+    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, False) #uses TextGrid annotation to derive structure. 
+    # TextGrid-1
+    syllableIdx = 273
+    currSyllable = listSentences[5].listWords[15].syllables[0]
     dictSyll2XSAMPA = createDictSyll2XSAMPA()
-    validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA)
+    validatePhonemesOneSyll(lyricsTextGrid, syllableIdx, dictSyll2XSAMPA, currSyllable)
     
     
 def validatePhonemesWholeAriaTest():
@@ -44,6 +50,8 @@ def validatePhonemesWholeAriaTest():
     
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/wangjiangting_dushoukong'
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/shiwenhui_tingxiongyan'
+    
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat_rules/fold1/xixiangji_biyuntian'
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
     
     
@@ -52,14 +60,21 @@ def validatePhonemesWholeAriaTest():
 
 def vaidatePhonemesAllArias():
 ##### automatic dir parsing:    
-    path = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/'
+    path = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat_rules/'
     from Utilz import findFilesByExtension
     
-    lyricsTextGrids = findFilesByExtension(path, 'TextGrid')
-    for lyricsTextGrid in lyricsTextGrids:
-        print "working on " + lyricsTextGrid 
-        validatePhonemesWholeAria(lyricsTextGrid)
+    folds = ['fold1/', 'fold2/', 'fold3/']            
+    for fold_ in folds:
     
+            URiREcordings = findFilesByExtension(path + fold_, 'wav')
+            if len(URiREcordings) == 0:
+                sys.exit("path {} has no wav recordings".format(path))
+            for URiREcording in URiREcordings:
+                URIrecordingNoExt = os.path.splitext(URiREcording)[0] 
+                lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
+                validatePhonemesWholeAria(lyricsTextGrid)
+        
+      
      
      
       
@@ -93,11 +108,11 @@ def  createDictSyll2XSAMPATest():
     
 if __name__ == '__main__':
     
-#     vaidatePhonemesAllArias()        
-    validatePhonemesWholeAriaTest()
+#     validatePhonemesOneSyllTest() 
+    vaidatePhonemesAllArias()        
+#     validatePhonemesWholeAriaTest()
 
   
-#     validatePhonemesOneSyllTest() 
 #     createDictSyll2XSAMPATest()
 #     tokenizePhonemesTest()
 

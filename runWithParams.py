@@ -14,9 +14,90 @@ from lyricsParser import divideIntoSentencesFromAnnoWithSil
 from runitHTK import runitHTK
 from matplotlib.pyplot import legend
 
-
+import matplotlib.pyplot as plt
 from Utilz import getMeanAndStDev
+from PraatVisualiser import tokenList2TabFile
 
+
+
+
+def runWithParameters(argv):
+    
+    if len(argv) != 4:
+            print ("Tool to get alignment accuracy of one jingju aria with different parameters ")
+            print ("usage: {}   <URIRecording No Extension>  <deviation_INSeconds> withRules".format(argv[0]) )
+            sys.exit()
+    
+    URIrecordingNoExt =  argv[1]
+    lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
+    
+   
+    withRules = int(argv[3])
+    correctDurationHTK = 0
+    totalDurationHTK = 1
+    accuracyListHTK = []
+    correctDurationHTK, totalDurationHTK, accuracyListHTK = runitHTK(["dummy", URIrecordingNoExt ])       
+    
+    
+    # load total # different sentences + their rspective ts
+#         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
+    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, withRules) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
+    
+    ParametersAlgo.DEVIATION_IN_SEC = float(argv[2])
+    musicXMLParser = None
+        
+    withDurations = 0
+
+    if withDurations == 1:
+        musicXmlURI = URIrecordingNoExt + '_score.xml'
+        musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
+    
+
+    
+    correctDurationOracle = 0
+    totalDurationOracle = 1
+    accuracyListOracle = []
+    
+    
+    correctDuration = 0
+    totalDuration = 1
+    accuracyList = []
+    tokenListAlignedAll = []
+    
+    withVocalPrediction = 0
+#     for whichSentence, currSentence in  reversed(list(enumerate(listSentences))):
+    for whichSentence, currSentence in  enumerate(listSentences):
+        
+        currSentence.printSyllables()
+        
+        withOracle = 1
+        correctDurationOracle, totalDurationOracle, dummy, dummy = doit(withOracle, withRules, URIrecordingNoExt, musicXMLParser, withDurations, correctDurationOracle, totalDurationOracle, accuracyListOracle, withVocalPrediction, whichSentence, currSentence)
+
+        
+            
+        # calc local acc
+        withOracle = 0
+        correctDuration,  totalDuration,  tokenListAligned, sentenceBeginTs  = doit(withOracle, withRules, URIrecordingNoExt, musicXMLParser, withDurations, correctDuration, totalDuration, accuracyList, withVocalPrediction, whichSentence, currSentence)
+        tokenListAlignedAll.extend(tokenListAligned)
+          
+
+    tokenAlignedfileName =  tokenList2TabFile(tokenListAlignedAll, URIrecordingNoExt, '.syllables_total')
+    
+    plotAccuracyList(accuracyListOracle, 'oracle', 'r')
+    plotAccuracyList(accuracyList, 'DHMM', 'g')
+    plotAccuracyList(accuracyListHTK, 'baseline', 'b')
+    
+    
+    legend(loc=3, fontsize=12)
+    plt.axvline(2.5)
+    plt.axvline(7.5)
+    plt.xlabel('lyrics lines', fontsize=12)
+    plt.ylabel('overall accuracy', fontsize=12)
+
+    plt.show()
+    
+    
+    return  correctDurationHTK, totalDurationHTK, correctDurationOracle, totalDurationOracle, correctDuration, totalDuration
 
 
 def calcAccuracy(whichSentence, currCorrectDuration, currTotalDuration, correctDuration, totalDuration):
@@ -34,85 +115,26 @@ def calcAccuracy(whichSentence, currCorrectDuration, currTotalDuration, correctD
 
 
 
-def runWithParameters(argv):
-    
-    if len(argv) != 3:
-            print ("Tool to get alignment accuracy of one jingju aria with different parameters ")
-            print ("usage: {}   <URIRecording No Extension>  <deviation_INSeconds> ".format(argv[0]) )
-            sys.exit()
-    
-    URIrecordingNoExt =  argv[1]
-    lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
-    
+
+def doit( withOracle, withRules, URIrecordingNoExt, musicXMLParser, withDurations, correctDuration, totalDuration, accuracyList, withVocalPrediction, whichSentence, currSentence):
    
-    correctDurationHTK = 0
-    totalDurationHTK = 1
-    accuracyListHTK = []
-#     correctDurationHTK, totalDurationHTK, accuracyListHTK = runitHTK(["dummy", URIrecordingNoExt ])       
+    currCorrectDuration, currTotalDuration, detectedTokenList, sentenceBeginTs = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction, withRules) # calc local accuracy
+    currAcc, correctDuration, totalDuration = calcAccuracy(whichSentence, currCorrectDuration, currTotalDuration, correctDuration, totalDuration)
+    accuracyList.append(currAcc)
     
-    
-    # load total # different sentences + their rspective ts
-#         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
-    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
-    
-    ParametersAlgo.DEVIATION_IN_SEC = float(argv[2])
-    musicXMLParser = None
-        
-    withDurations = 0
+    return correctDuration, totalDuration, detectedTokenList, sentenceBeginTs
 
-    if withDurations == 1:
-        musicXmlURI = URIrecordingNoExt + '_score.xml'
-        musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
-    
 
+def plotAccuracyList(accuracyList, labelText, colorText):
     
-    correctDurationOracle = 0
-    totalDurationOracle = 0
-    accuracyListOracle = []
+    point  = colorText + 'o' 
+    plt.plot(accuracyList, point, label=labelText) # plot mean and st dev
+    mean, stDev, median = getMeanAndStDev(accuracyList)
+#     plt.errorbar(len(accuracyList) / 2.0, mean, stDev, ecolor=colorText, linestyle='None', marker='^')
     
-    
-    correctDuration = 0
-    totalDuration = 0
-    accuracyList = []
-    
-    withVocalPrediction = 0
-#     for whichSentence, currSentence in  reversed(list(enumerate(listSentences))):
-    for whichSentence, currSentence in  enumerate(listSentences):
-        withOracle = 1
-         
+      
   
-        currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction)  
-        # calc local accuracy
-        currAccOracle, correctDurationOracle, totalDurationOracle = calcAccuracy( whichSentence, currCorrectDuration, currTotalDuration,  correctDurationOracle, totalDurationOracle)
-         
-        accuracyListOracle.append(currAccOracle)
-        
-        
-        
-        # calc local acc
-#         withOracle = 0
-#         currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction)  
-#         # calc local accuracy
-#         currAcc, correctDuration, totalDuration = calcAccuracy( whichSentence, currCorrectDuration, currTotalDuration,  correctDuration, totalDuration)
-#          
-#         accuracyList.append(currAcc)   
-#     print "final: {:.2f}".format(correctDuration / totalDuration * 100)     
-
-    import matplotlib.pyplot as plt
-    plt.plot(accuracyListOracle, 'ro', label='oracle')
-    # plot mean and st dev
-    mean, stDev, median = getMeanAndStDev(accuracyListOracle)
-    plt.errorbar(len(accuracyListOracle) / 2.0, mean, stDev, ecolor='r', linestyle='None', marker='^')
-    
-    plt.plot(accuracyList, 'go', label = 'xampa')
-    plt.plot(accuracyListHTK, 'bo', label = 'htk')
-    legend(loc=3, fontsize=12)
-    plt.xlabel(URIrecordingNoExt, fontsize=28)
-
-    plt.show()
-    
-    
-    return  correctDurationHTK, totalDurationHTK, correctDurationOracle, totalDurationOracle, correctDuration, totalDuration
+  
     
 if __name__ == '__main__':
     runWithParameters(sys.argv)

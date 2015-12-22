@@ -3,7 +3,7 @@ Created on Nov 6, 2015
 
 @author: joro
 '''
-from lyricsParser import splitThePhoneme, mergeDuplicateSyllablePhonemes,\
+from lyricsParser import splitThePhoneme, splitDuplicateSyllablePhonemes,\
     createSyllable
 from Phoneme import Phoneme
 from PhonetizerDict import tokenizePhonemes
@@ -38,7 +38,7 @@ def testMergeDuplicateSyllablePhonemes():
     
     phonemesDictSAMPA = 'eI^'
     phonemesDictSAMPAQueue = tokenizePhonemes(phonemesDictSAMPA)
-    phonemesAnnoSplit = mergeDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPAQueue)
+    phonemesAnnoSplit = splitDuplicateSyllablePhonemes(phonemesAnno, phonemesDictSAMPAQueue)
     print phonemesAnnoSplit
 
 def testMergeDuplicateSyllablePhonemes3():
@@ -61,7 +61,7 @@ def testMergeDuplicateSyllablePhonemes3():
     lyrics = syllables2Lyrics(syllablesLIst)
     syllable = lyrics.listWords[0].syllables[0]
    
-    phonemesAnnoSplit = mergeDuplicateSyllablePhonemes(phonemesAnno, syllable.phonemes)
+    phonemesAnnoSplit = splitDuplicateSyllablePhonemes(phonemesAnno, syllable.phonemes)
     print phonemesAnnoSplit
 
 
@@ -97,7 +97,7 @@ def testMergeDuplicateSyllablePhonemes2():
     lyrics = syllables2Lyrics(syllablesLIst)
     syllable = lyrics.listWords[0].syllables[0]
     
-    phonemesAnnoSplit = mergeDuplicateSyllablePhonemes(phonemesAnno, syllable.phonemes)
+    phonemesAnnoSplit = splitDuplicateSyllablePhonemes(phonemesAnno, syllable.phonemes)
     print phonemesAnnoSplit
 
 if __name__ == '__main__':

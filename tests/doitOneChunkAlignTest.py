@@ -6,6 +6,15 @@ Created on Sep 23, 2015
 @author: joro
 
 '''
+
+import os
+import sys
+parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
+
+if parentDir not in sys.path:
+    sys.path.append(parentDir)
+    
+
 from doitOneChunkAlign import doitOneChunkAlign, loadLyrics
 import os
 from lyricsParser import \
@@ -21,7 +30,7 @@ def loadLyricsTest():
     URIrecordingNoExt ='/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/fold2/wangjiangting_dushoukong'
     
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
-    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure
+    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, False) #uses TextGrid annotation to derive structure
     whichSentence = 1
     sentence = listSentences[whichSentence]
     
@@ -44,10 +53,13 @@ def doitOneChunkTest():
     
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/arias_dev_01_t_70/dan-xipi_02'
     URIrecordingNoExt ='/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/fold2/wangjiangting_dushoukong'
+    
+    URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat_rules/fold1/xixiangji_biyuntian'
+
  
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
 
-    whichSentence = 1
+    whichSentence = 7
 
     ###########################################################
          
@@ -59,18 +71,23 @@ def doitOneChunkTest():
 #     musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
     
     
-    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid) #uses TextGrid annotation to derive structure
+    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, False) #uses TextGrid annotation to derive structure
     sentence = listSentences[whichSentence]
         
     withVocalPrediction = 0
     
     withOracle  = 0
-    currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, sentence, withOracle, withDurations, withVocalPrediction)  
+    withRules = 1
+    
+    from hmm.ParametersAlgo import ParametersAlgo
+    ParametersAlgo.DEVIATION_IN_SEC = 5
+    
+    currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, sentence, withOracle, withDurations, withVocalPrediction, withRules)  
  
     currAcc = currCorrectDuration / currTotalDuration
     print "sentence {}: acc ={:.2f}".format(whichSentence, currAcc)
      
 if __name__ == '__main__':
 #     readPinYinTest()
-#     doitOneChunkTest()
-    loadLyricsTest()
+    doitOneChunkTest()
+#     loadLyricsTest()
