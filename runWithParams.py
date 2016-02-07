@@ -15,8 +15,7 @@ from runitHTK import runitHTK
 from matplotlib.pyplot import legend
 
 import matplotlib.pyplot as plt
-from Utilz import getMeanAndStDev
-from PraatVisualiser import tokenList2TabFile
+from utilsLyrics.Utilz import getMeanAndStDev, tokenList2TabFile
 
 
 
@@ -94,7 +93,7 @@ def runWithParameters(argv):
     plt.xlabel('lyrics lines', fontsize=12)
     plt.ylabel('overall accuracy', fontsize=12)
 
-    plt.show()
+#     plt.show()
     
     
     return  correctDurationHTK, totalDurationHTK, correctDurationOracle, totalDurationOracle, correctDuration, totalDuration

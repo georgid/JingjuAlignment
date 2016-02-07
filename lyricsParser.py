@@ -24,10 +24,11 @@ logger.setLevel(logging.INFO)
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
-pathUtils = os.path.join(parentDir, 'utilsLyrics')
-if pathUtils not in sys.path:
-    sys.path.append(pathUtils)
-from Utilz import writeListToTextFile
+# pathUtils = os.path.join(parentDir, 'utilsLyrics')
+# if pathUtils not in sys.path:
+#     sys.path.append(pathUtils)
+
+from utilsLyrics.Utilz import writeListToTextFile
 
 
 pathEvaluation = os.path.join(parentDir, 'AlignmentEvaluation')
@@ -155,12 +156,12 @@ def divideIntoSentencesFromAnnoWithSil(annotationURI, withRules):
 
 
 
-def createSyllable(currSentenceSyllables, syllableText):
+def createSyllable(currSentenceSyllables, syllableText, duration=1):
     isEndOfSentence, syllableTxt = stripPunctuationSigns(syllableText)
     if syllableTxt == '':
         syllableTxt = 'REST'
     currSyllable = SyllableJingju(syllableTxt, -1)
-    currSyllable.setDurationInMinUnit(1)
+    currSyllable.setDurationInMinUnit(duration)
     
     currSentenceSyllables.append(currSyllable)
     return currSentenceSyllables

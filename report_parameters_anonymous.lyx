@@ -780,6 +780,24 @@ Comparison of total oracle, baseline and DHMM alignment.
 
 \end_layout
 
+\begin_layout Plain Layout
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+IMPL: run with commit: https://github.com/georgid/JingjuAlignment/commit/87e593d2
+c32c6a385c69691370f2bb8ee77328cf
+\end_layout
+
+\begin_layout Plain Layout
+see comments of commit in github
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \end_inset
 
 
@@ -834,7 +852,7 @@ TODO: comment more
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Graphics

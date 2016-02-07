@@ -16,7 +16,6 @@ if parentDir not in sys.path:
     
 
 from doitOneChunkAlign import doitOneChunkAlign, loadLyrics
-import os
 from lyricsParser import \
     divideIntoSentencesFromAnnoWithSil
 from MusicXmlParser import MusicXMLParser
@@ -56,7 +55,7 @@ def doitOneChunkTest():
     
     URIrecordingNoExt = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat_rules/fold1/xixiangji_biyuntian'
 
- 
+    
     lyricsTextGrid = URIrecordingNoExt + '.TextGrid'
 
     whichSentence = 7
@@ -73,6 +72,7 @@ def doitOneChunkTest():
     
     listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, False) #uses TextGrid annotation to derive structure
     sentence = listSentences[whichSentence]
+    
         
     withVocalPrediction = 0
     
@@ -82,10 +82,14 @@ def doitOneChunkTest():
     from hmm.ParametersAlgo import ParametersAlgo
     ParametersAlgo.DEVIATION_IN_SEC = 5
     
-    currCorrectDuration, currTotalDuration = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, sentence, withOracle, withDurations, withVocalPrediction, withRules)  
- 
+    currCorrectDuration, currTotalDuration, detectedTokenList, currSentenceBeginTs = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, sentence, withOracle, withDurations, withVocalPrediction, withRules)  
+    
     currAcc = currCorrectDuration / currTotalDuration
     print "sentence {}: acc ={:.2f}".format(whichSentence, currAcc)
+    
+
+
+    
      
 if __name__ == '__main__':
 #     readPinYinTest()

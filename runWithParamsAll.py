@@ -17,7 +17,7 @@ def runWithParametersAll(argv):
     path = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat/'
     path = '/Users/joro/Documents/Phd/UPF/JingjuSingingAnnotation/lyrics2audio/praat_rules/'
 
-    from Utilz import findFilesByExtension
+    from utilsLyrics.Utilz import findFilesByExtension
     
     correctDurationHTK = 0
     totalDurationHTK = 0

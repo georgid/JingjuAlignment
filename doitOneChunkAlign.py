@@ -6,21 +6,23 @@ Created on Oct 13, 2014
 import sys
 import os
 from ParsePhonemeAnnotation import loadPhonemesAnnoOneSyll
+from SentenceJingju import SentenceJingju
+from lyricsParser import createSyllable
+from MusicXmlParser import mandarinToPinyin
 
 
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 
-pathUtils = os.path.join(parentDir, 'utilsLyrics')
-if pathUtils not in sys.path:
-    sys.path.append(pathUtils)
-from Utilz import writeListToTextFile
+# pathUtils = os.path.join(parentDir, 'utilsLyrics')
+# if pathUtils not in sys.path:
+#     sys.path.append(pathUtils)
+from utilsLyrics.Utilz import writeListToTextFile, tokenList2TabFile, readListOfListTextFile
 
 
 pathEvaluation = os.path.join(parentDir, 'AlignmentEvaluation')
 if pathEvaluation not in sys.path:
     sys.path.append(pathEvaluation)
-from PraatVisualiser import tokenList2TabFile
 
 
 
@@ -30,9 +32,9 @@ if pathHMMDuration not in sys.path:
 
 
 # parser of htk-build speech model
-pathHtkModelParser = os.path.join(parentDir, 'htkModelParser')
-sys.path.append(pathHtkModelParser)
-from htk_converter import HtkConverter
+# pathHtkModelParser = os.path.join(parentDir, 'htkModelParser')
+# sys.path.append(pathHtkModelParser)
+from htkparser.htk_converter import HtkConverter
 
 
 
@@ -44,16 +46,15 @@ from Lyrics import Lyrics
     
 from WordLevelEvaluator import readNonEmptyTokensTextGrid
 from AccuracyEvaluator import _evalAccuracy
-from FeatureExtractor import loadMFCCs
 from doitOneChunk import alignOneChunk
 
 
 pathHMM = os.path.join(parentDir, 'HMMDuration')
-from hmm.examples.main  import  loadSmallAudioFragmentOracle,  loadSmallAudioFragment
+from hmm.examples.main  import   loadSmallAudioFragment
+# from hmm.examples.main  import loadSmallAudioFragmentOracle
 from hmm.ParametersAlgo import ParametersAlgo
 
 
-from Utilz import readListOfListTextFile
 
 ANNOTATION_EXT = '.TextGrid'
 evalLevel = 3 
@@ -134,7 +135,56 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSent
     
     return correctDuration, totalDuration, detectedTokenList, currSentence.beginTs
 
+def doitOneChunkAlignWithCsv(URIrecordingNoExt, scoreFilename):
+    withOracle = 0
+    withDurations = 1
+    withVocalPrediction= 0  
+    withRules = 0
+    withSynthesis = 0
+   
+    currSectionSyllables, bpm = csvDurationScoreParser(scoreFilename)
+    
+    
+    banshiType = 'none'
+    sentence = SentenceJingju(currSectionSyllables,  0, 5, 0, len(currSectionSyllables), banshiType, withRules)
 
+    alpha = 0.97
+    detectedTokenList, detectedPath = alignOneChunk( sentence, withSynthesis, withOracle, [], [], alpha, evalLevel, False, '.syllRong', 0, 5, URIrecordingNoExt)
+     
+    correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, sentence.fromSyllableIdx, sentence.toSyllableIdx  )
+    acc = correctDuration / totalDuration
+    print "result is: " + str(acc)
+    
+    return correctDuration, totalDuration, detectedTokenList, sentence.beginTs
+    
+
+def csvDurationScoreParser(scoreFilename):
+    '''
+    author Rong Gong
+    '''
+    import csv
+
+    syllable_durations = []
+    bpm                 = []
+    currSentenceSyllablesLIst = []
+    
+    with open(scoreFilename, 'rb') as csvfile:
+        score = csv.reader(csvfile)
+        for idx, row in enumerate(score):
+            if idx == 0:
+                syllableTexts = row
+            else:
+                syllableDurs = row
+        for sylMandarinChar, sylDur in zip(syllableTexts[1:],syllableDurs[1:]):
+            pinyin = sylMandarinChar
+            # pinyin = mandarinToPinyin(sylMandarinChar)
+            currSentenceSyllablesLIst = createSyllable(currSentenceSyllablesLIst, pinyin, float(sylDur))
+            
+           
+    bpm = syllableDurs[0]
+                
+    return currSentenceSyllablesLIst, bpm    
+    
 
 def getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs):
     segmentationDir = os.path.join(parentDir, 'segmentation')
@@ -152,4 +202,11 @@ def getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs):
     listNonVocalFragments = assignNonVocals(VJPpredictionFile, fromTs, toTs)
     return listNonVocalFragments
 
-
+if __name__ == '__main__':
+    scoreFilename = '/Users/joro//Downloads/fold1/neg_1_1_pinyin.csv'
+    URIrecordingNoExt = '/Users/joro//Downloads/fold1/neg_1_1'
+    
+#     URIrecordingNoExt = sys.argv[1]
+#     scoreFilename = sys.argv[2]
+#     
+    doitOneChunkAlignWithCsv(URIrecordingNoExt, scoreFilename)

@@ -116,6 +116,8 @@ class MusicXMLParser(object):
         return listSyllables
     
           
+
+
     def divideIntoSections(self):
         '''
         same as lyricsParser.divideIntoSections just class variable name self.listSyllable is different
@@ -131,11 +133,7 @@ class MusicXMLParser(object):
                 
                 ### convert from mandarin to pinyin
             if not syl.text == 'REST':
-                cjk = CharacterLookup('C')
-                textPinYinList = cjk.getReadingForCharacter(syl.text, 'Pinyin', toneMarkType='none') 
-                if len(textPinYinList) > 1:
-                    self.logger.warn("converted syllable {} has {} parts".format(textPinYinList, len(textPinYinList)))
-                syl.text = textPinYinList[0] # take only first variant of pinyin interpretations
+                syl.text = mandarinToPinyin(syl.text)
                 
             ### finish up sentence when punctuation present        
             if isEndOfSentence:
@@ -220,3 +218,11 @@ def createWord(syllablesInCurrWord, currSyllable):
         return word, syllablesInCurrWord   
     
     
+
+def mandarinToPinyin(mandarinChar):
+        cjk = CharacterLookup('C')
+        textPinYinList = cjk.getReadingForCharacter(mandarinChar, 'Pinyin', toneMarkType='none')
+        if len(textPinYinList) > 1:
+            print "converted syllable {} has {} parts".format(textPinYinList, len(textPinYinList)) 
+        pinyin = textPinYinList[0] # take only first variant of pinyin interpretations
+        return pinyin
