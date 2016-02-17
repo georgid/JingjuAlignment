@@ -155,8 +155,42 @@ def divideIntoSentencesFromAnnoWithSil(annotationURI, withRules):
     return listSentences
 
 
+def divideIntoSentencesFromAnnoWithSil_dianDuration(annotationURI, withRules):
+    '''
+    infer section/line timestamps from annotation-textgrid, 
+    parse divison into sentences from Tier 'lines' and load its syllables corresponding by timestamps 
+    '''
+    
+    highLevel = tierAliases.line # read lines (sentences) tier
+    dummy, annotationLinesListNoPauses =  readNonEmptyTokensTextGrid(annotationURI, highLevel, 0, -1)
+    
+    lowLevel = tierAliases.dian # read syllables in pinyin 
+    syllablesList, dummy =  readNonEmptyTokensTextGrid(annotationURI, lowLevel, 0, -1)
+    
+    lowLevel = tierAliases.dianDuration # read syllables in pinyin 
+    durationsList, dummy =  readNonEmptyTokensTextGrid(annotationURI, lowLevel, 0, -1)
 
-def createSyllable(currSentenceSyllables, syllableText, duration=1):
+    syllablePointer = 0
+    
+    listSentences = []
+    for currSentence in annotationLinesListNoPauses:
+        
+        currSentenceBeginTs = currSentence[0]
+        currSentenceEndTs = currSentence[1]
+
+         
+        fromSyllableIdx, toSyllableIdx, syllablePointer, currSectionSyllables = \
+         _findBeginEndIndices(syllablesList, syllablePointer, currSentenceBeginTs, currSentenceEndTs, highLevel, durationsList )
+        
+        banshiType = 'none'
+        currSentence = SentenceJingju(currSectionSyllables,  currSentenceBeginTs, currSentenceEndTs, fromSyllableIdx, toSyllableIdx, banshiType, withRules)
+        listSentences.append(currSentence)
+
+     
+    return listSentences
+
+
+def createSyllable(currSentenceSyllables, syllableText, duration=1.0):
     isEndOfSentence, syllableTxt = stripPunctuationSigns(syllableText)
     if syllableTxt == '':
         syllableTxt = 'REST'
@@ -168,12 +202,16 @@ def createSyllable(currSentenceSyllables, syllableText, duration=1):
 
 
 
-def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBeginTs, highLevelEndTs, highLevel):
+def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBeginTs, highLevelEndTs, highLevel, durationsList=None):
     ''' 
     find indices of lower level tier whihc align with indices of highLevel tier
     @return: fromLowLevelTokenIdx, toLowLevelTokenIdx
     @param lowerLevelTokenPointer: being updated, and returned 
     '''
+    if durationsList != None:
+        if len(durationsList) != len(lowLevelTokensList):
+            sys.exit(" len(durationsList) {} != lowLevelTokensList {} ".format(len(durationsList), len(lowLevelTokensList)))
+    
     currSentenceSyllablesLIst = []
     
     
@@ -188,7 +226,14 @@ def _findBeginEndIndices(lowLevelTokensList, lowerLevelTokenPointer, highLevelBe
         
         if highLevel == tierAliases.line:
             syllableText = lowLevelTokensList[lowerLevelTokenPointer][2]
-            createSyllable(currSentenceSyllablesLIst, syllableText)
+            if durationsList != None:
+                currDuration =  durationsList[lowerLevelTokenPointer][2] 
+                if currDuration != '': 
+                    createSyllable(currSentenceSyllablesLIst, syllableText, float(currDuration))
+                else:
+                   createSyllable(currSentenceSyllablesLIst, syllableText) 
+            else: # no durations given
+                createSyllable(currSentenceSyllablesLIst, syllableText)
         
         lowerLevelTokenPointer += 1
     

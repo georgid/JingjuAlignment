@@ -13,7 +13,6 @@ import sys
 from collections import deque
 from PhonetizerDict import loadXSAMPAPhonetizers, toXSAMPAPhonemes,\
     createDictSyll2XSAMPA, tokenizePhonemes
-import logging
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir)) 
 

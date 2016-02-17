@@ -10,13 +10,17 @@ from MusicXmlParser import MusicXMLParser
 from hmm.ParametersAlgo import ParametersAlgo
 
 from doitOneChunkAlign import doitOneChunkAlign
-from lyricsParser import divideIntoSentencesFromAnnoWithSil
+from lyricsParser import divideIntoSentencesFromAnnoWithSil,\
+    divideIntoSentencesFromAnnoWithSil_dianDuration
 from runitHTK import runitHTK
 from matplotlib.pyplot import legend
 
 import matplotlib.pyplot as plt
-from utilsLyrics.Utilz import getMeanAndStDev, tokenList2TabFile
+from utilsLyrics.Utilz import getMeanAndStDevError, tokenList2TabFile
 
+
+from WordLevelEvaluator import tierAliases
+evalLevel = tierAliases.dian
 
 
 
@@ -35,19 +39,22 @@ def runWithParameters(argv):
     correctDurationHTK = 0
     totalDurationHTK = 1
     accuracyListHTK = []
-    correctDurationHTK, totalDurationHTK, accuracyListHTK = runitHTK(["dummy", URIrecordingNoExt ])       
+#     correctDurationHTK, totalDurationHTK, accuracyListHTK = runitHTK(["dummy", URIrecordingNoExt ])       
     
     
     # load total # different sentences + their rspective ts
 #         fromTss, toTss = loadSectionTimeStamps(sectionAnnoURI)
-    listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, withRules) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
+#     listSentences = divideIntoSentencesFromAnnoWithSil(lyricsTextGrid, withRules) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
+    listSentences = divideIntoSentencesFromAnnoWithSil_dianDuration(lyricsTextGrid, withRules) #uses TextGrid annotation to derive structure. TODO: instead of annotation, uses score
+
+    
     
     ParametersAlgo.DEVIATION_IN_SEC = float(argv[2])
     musicXMLParser = None
         
-    withDurations = 0
+    withScores = 0
 
-    if withDurations == 1:
+    if withScores == 1:
         musicXmlURI = URIrecordingNoExt + '_score.xml'
         musicXMLParser = MusicXMLParser(musicXmlURI, lyricsTextGrid)
     
@@ -67,20 +74,22 @@ def runWithParameters(argv):
 #     for whichSentence, currSentence in  reversed(list(enumerate(listSentences))):
     for whichSentence, currSentence in  enumerate(listSentences):
         
-        currSentence.printSyllables()
+#         currSentence.printSyllables()
         
         withOracle = 1
-        correctDurationOracle, totalDurationOracle, dummy, dummy = doit(withOracle, withRules, URIrecordingNoExt, musicXMLParser, withDurations, correctDurationOracle, totalDurationOracle, accuracyListOracle, withVocalPrediction, whichSentence, currSentence)
+#         correctDurationOracle, totalDurationOracle, dummy, dummy = doit(withOracle, withRules, URIrecordingNoExt, musicXMLParser, withScores, correctDurationOracle, totalDurationOracle, accuracyListOracle, withVocalPrediction, whichSentence, currSentence)
 
         
             
         # calc local acc
         withOracle = 0
-        correctDuration,  totalDuration,  tokenListAligned, sentenceBeginTs  = doit(withOracle, withRules, URIrecordingNoExt, musicXMLParser, withDurations, correctDuration, totalDuration, accuracyList, withVocalPrediction, whichSentence, currSentence)
+        correctDuration,  totalDuration,  tokenListAligned, sentenceBeginTs  = doit(withOracle, withRules, URIrecordingNoExt, musicXMLParser, withScores, correctDuration, totalDuration, accuracyList, withVocalPrediction, whichSentence, currSentence)
+        if tokenListAligned == None:
+            continue
         tokenListAlignedAll.extend(tokenListAligned)
           
 
-    tokenAlignedfileName =  tokenList2TabFile(tokenListAlignedAll, URIrecordingNoExt, '.syllables_total')
+    tokenAlignedfileName =  tokenList2TabFile(tokenListAlignedAll, URIrecordingNoExt, '.syllables_total_dev_' + str(ParametersAlgo.DEVIATION_IN_SEC))
     
     plotAccuracyList(accuracyListOracle, 'oracle', 'r')
     plotAccuracyList(accuracyList, 'DHMM', 'g')
@@ -117,9 +126,10 @@ def calcAccuracy(whichSentence, currCorrectDuration, currTotalDuration, correctD
 
 def doit( withOracle, withRules, URIrecordingNoExt, musicXMLParser, withDurations, correctDuration, totalDuration, accuracyList, withVocalPrediction, whichSentence, currSentence):
    
-    currCorrectDuration, currTotalDuration, detectedTokenList, sentenceBeginTs = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction, withRules) # calc local accuracy
-    currAcc, correctDuration, totalDuration = calcAccuracy(whichSentence, currCorrectDuration, currTotalDuration, correctDuration, totalDuration)
-    accuracyList.append(currAcc)
+    currCorrectDuration, currTotalDuration, detectedTokenList, sentenceBeginTs = doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction, withRules, evalLevel) # calc local accuracy
+    if detectedTokenList != None:
+        currAcc, correctDuration, totalDuration = calcAccuracy(whichSentence, currCorrectDuration, currTotalDuration, correctDuration, totalDuration)
+        accuracyList.append(currAcc)
     
     return correctDuration, totalDuration, detectedTokenList, sentenceBeginTs
 
@@ -128,7 +138,7 @@ def plotAccuracyList(accuracyList, labelText, colorText):
     
     point  = colorText + 'o' 
     plt.plot(accuracyList, point, label=labelText) # plot mean and st dev
-    mean, stDev, median = getMeanAndStDev(accuracyList)
+    mean, stDev, median = getMeanAndStDevError(accuracyList)
 #     plt.errorbar(len(accuracyList) / 2.0, mean, stDev, ecolor=colorText, linestyle='None', marker='^')
     
       

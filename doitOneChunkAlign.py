@@ -57,7 +57,6 @@ from hmm.ParametersAlgo import ParametersAlgo
 
 
 ANNOTATION_EXT = '.TextGrid'
-evalLevel = 3 
 
 
 def loadLyrics(URIrecordingNoExt, currSentence):
@@ -70,7 +69,7 @@ def loadLyrics(URIrecordingNoExt, currSentence):
     lyricsWithModels.printWordsAndStates()
 
 
-def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction, withRules):
+def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSentence, withOracle, withDurations, withVocalPrediction, withRules, evalLevel ):
     '''
     align one chunk only.
     @param musicXMLParser: parsed  score for whole recording
@@ -127,63 +126,16 @@ def doitOneChunkAlign(URIrecordingNoExt, musicXMLParser, whichSentence, currSent
 #     if withVocalPrediction:
 #         listNonVocalFragments = getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs)
     
-    detectedTokenList, detectedPath = alignOneChunk( lyrics, withSynthesis, withOracle, phonemesAnnoAll, listNonVocalFragments, alpha, evalLevel, usePersistentFiles, tokenLevelAlignedSuffix, currSentence.beginTs, currSentence.endTs, URIrecordingNoExt)
-     
+    detectedTokenList, detectedPath = alignOneChunk( lyrics, withSynthesis, withOracle, phonemesAnnoAll, listNonVocalFragments, alpha, usePersistentFiles, tokenLevelAlignedSuffix, currSentence.beginTs, currSentence.endTs, URIrecordingNoExt)
+    if detectedTokenList == None:
+        return None, None, None, None
     correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, currSentence.fromSyllableIdx, currSentence.toSyllableIdx  )
     acc = correctDuration / totalDuration
     print "result is: " + str(acc)
     
     return correctDuration, totalDuration, detectedTokenList, currSentence.beginTs
 
-def doitOneChunkAlignWithCsv(URIrecordingNoExt, scoreFilename):
-    withOracle = 0
-    withDurations = 1
-    withVocalPrediction= 0  
-    withRules = 0
-    withSynthesis = 0
    
-    currSectionSyllables, bpm = csvDurationScoreParser(scoreFilename)
-    
-    
-    banshiType = 'none'
-    sentence = SentenceJingju(currSectionSyllables,  0, 5, 0, len(currSectionSyllables), banshiType, withRules)
-
-    alpha = 0.97
-    detectedTokenList, detectedPath = alignOneChunk( sentence, withSynthesis, withOracle, [], [], alpha, evalLevel, False, '.syllRong', 0, 5, URIrecordingNoExt)
-     
-    correctDuration, totalDuration = _evalAccuracy(URIrecordingNoExt + ANNOTATION_EXT, detectedTokenList, evalLevel, sentence.fromSyllableIdx, sentence.toSyllableIdx  )
-    acc = correctDuration / totalDuration
-    print "result is: " + str(acc)
-    
-    return correctDuration, totalDuration, detectedTokenList, sentence.beginTs
-    
-
-def csvDurationScoreParser(scoreFilename):
-    '''
-    author Rong Gong
-    '''
-    import csv
-
-    syllable_durations = []
-    bpm                 = []
-    currSentenceSyllablesLIst = []
-    
-    with open(scoreFilename, 'rb') as csvfile:
-        score = csv.reader(csvfile)
-        for idx, row in enumerate(score):
-            if idx == 0:
-                syllableTexts = row
-            else:
-                syllableDurs = row
-        for sylMandarinChar, sylDur in zip(syllableTexts[1:],syllableDurs[1:]):
-            pinyin = sylMandarinChar
-            # pinyin = mandarinToPinyin(sylMandarinChar)
-            currSentenceSyllablesLIst = createSyllable(currSentenceSyllablesLIst, pinyin, float(sylDur))
-            
-           
-    bpm = syllableDurs[0]
-                
-    return currSentenceSyllablesLIst, bpm    
     
 
 def getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs):
@@ -202,11 +154,4 @@ def getListNonVocalFragments(URIrecordingNoExt, fromTs, toTs):
     listNonVocalFragments = assignNonVocals(VJPpredictionFile, fromTs, toTs)
     return listNonVocalFragments
 
-if __name__ == '__main__':
-    scoreFilename = '/Users/joro//Downloads/fold1/neg_1_1_pinyin.csv'
-    URIrecordingNoExt = '/Users/joro//Downloads/fold1/neg_1_1'
-    
-#     URIrecordingNoExt = sys.argv[1]
-#     scoreFilename = sys.argv[2]
-#     
-    doitOneChunkAlignWithCsv(URIrecordingNoExt, scoreFilename)
+  
